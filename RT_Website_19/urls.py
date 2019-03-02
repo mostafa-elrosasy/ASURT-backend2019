@@ -21,6 +21,8 @@ from AuthenticationSystem import urls as AuthenticationSystem
 from ProfileSystem import urls as ProfileSystem 
 
 
+
+
 urlpatterns = [
     path('api/api-token-verify/', verify_jwt_token),
     path('admin/', admin.site.urls),
