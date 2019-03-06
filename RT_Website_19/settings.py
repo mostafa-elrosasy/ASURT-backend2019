@@ -116,8 +116,8 @@ JWT_AUTH = {
     'rest_framework_jwt.utils.jwt_decode_handler',
 
     'JWT_PAYLOAD_HANDLER':
-    'RT_Website_19.custom_jwt.jwt_payload_handler',
-    # 'rest_framework_jwt.utils.jwt_payload_handler',
+    'rest_framework_jwt.utils.jwt_payload_handler',
+    # 'RT_Website_19.custom_jwt.jwt_payload_handler',
 
     'JWT_PAYLOAD_GET_USER_ID_HANDLER':
     'rest_framework_jwt.utils.jwt_get_user_id_from_payload_handler',
