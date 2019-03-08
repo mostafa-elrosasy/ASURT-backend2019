@@ -2,8 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import UsersSignUp
-from .serializers import UsersSignUpSerializer,UsersSerializer,SocialSerializer
+from .serializers import UsersSignUpSerializer,UsersSerializer,SocialSerializer,UsersSignInSerializer
 # from .serializers import UsersSignUpSerializer, ADMINSerializer
 from rest_framework.parsers import JSONParser
 import io
@@ -17,6 +16,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from rest_framework_jwt.settings import api_settings
+from django.contrib.auth import authenticate
+
 
 
 
@@ -99,43 +100,25 @@ class ADMIN(APIView):
 
 # sign in view that will contain by email
 
-class EmailSignInView(APIView):
-
+class SignInView(APIView):
     def post(self, request):
-        serializer = UsersSerializer(data=request.data)
+        serializer = UsersSignInSerializer(data=request.data)
         if serializer.is_valid():
-            try:
-                serializer.validated_data["email"]
-                serializer.validated_data["password"]
-                serializer.validated_data["remember_me"]
-            except KeyError:
-                return Response({"error": "Some data is missing"}, status=status.HTTP_400_BAD_REQUEST)
-            try:
-                user = UsersSignUp.objects.get(username=serializer.validated_data["email"])
-            except UsersSignUp.DoesNotExist:
-                return Response({"Error": "Please Sign up first","error": "Email/Password is incorrect"}, status=status.HTTP_401_UNAUTHORIZED)
-            else:
-                #sign in to the system
-                if authenticate(username=user.username,password=serializer.validated_data["password"]):
-                    #Generate the user JWT and return it to the front to be logged in
-                    jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
-                    jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
-                    payload = jwt_payload_handler(user, request.data["remember_me"])
-                    token = jwt_encode_handler(payload)
-                    return Response({"token": token}, status=status.HTTP_201_CREATED)
-                else:
-                    #not a normal user , then check the social user table
-                    try:
-                        UsersSignUp.objects.get(user=user)
-                    except UsersSignUp.DoesNotExist:
-                        #no , then there is something wrong with the data inserted.
-                        return Response({"Error": "Password provided is wrong","error": "Email/Password is incorrect"}, status=status.HTTP_401_UNAUTHORIZED)
-                    else:
-                        #yes exist as a social user , can't login
-                        return Response({"error": "The Email exist as a social account, login using your social account"},status=status.HTTP_401_UNAUTHORIZED)
+            remember_me = serializer.validated_data["remember_me"]
+            user = User.objects.get(username=serializer.validated_data["username"])
+            authenticate(username=user.username,password=serializer.validated_data["password"])
+            jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+            jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+            payload = jwt_payload_handler(user, remember_me)
+            token = jwt_encode_handler(payload)
+            return Response({"token":token}, status = 200)
+            
         else:
-            #Invalid data inserted
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
 
 
 
@@ -241,3 +224,45 @@ class ChangePasswordView(APIView):
         except Exception as e:
             return Response({"error": "Please try again later"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         return Response({"done": "Password is Changed"},status=status.HTTP_200_OK)
+
+
+
+
+
+# class EmailSignInView(APIView):
+
+#     def post(self, request):
+#         serializer = UsersSerializer(data=request.data)
+#         if serializer.is_valid():
+#             try:
+#                 serializer.validated_data["email"]
+#                 serializer.validated_data["password"]
+#                 serializer.validated_data["remember_me"]
+#             except KeyError:
+#                 return Response({"error": "Some data is missing"}, status=status.HTTP_400_BAD_REQUEST)
+#             try:
+#                 user = UsersSignUp.objects.get(username=serializer.validated_data["email"])
+#             except UsersSignUp.DoesNotExist:
+#                 return Response({"Error": "Please Sign up first","error": "Email/Password is incorrect"}, status=status.HTTP_401_UNAUTHORIZED)
+#             else:
+#                 #sign in to the system
+#                 if authenticate(username=user.username,password=serializer.validated_data["password"]):
+#                     #Generate the user JWT and return it to the front to be logged in
+#                     jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+#                     jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+#                     payload = jwt_payload_handler(user, request.data["remember_me"])
+#                     token = jwt_encode_handler(payload)
+#                     return Response({"token": token}, status=status.HTTP_201_CREATED)
+#                 else:
+#                     #not a normal user , then check the social user table
+#                     try:
+#                         UsersSignUp.objects.get(user=user)
+#                     except UsersSignUp.DoesNotExist:
+#                         #no , then there is something wrong with the data inserted.
+#                         return Response({"Error": "Password provided is wrong","error": "Email/Password is incorrect"}, status=status.HTTP_401_UNAUTHORIZED)
+#                     else:
+#                         #yes exist as a social user , can't login
+#                         return Response({"error": "The Email exist as a social account, login using your social account"},status=status.HTTP_401_UNAUTHORIZED)
+#         else:
+#             #Invalid data inserted
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

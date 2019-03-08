@@ -9,12 +9,11 @@ from rest_framework_jwt.views import verify_jwt_token
 
 urlpatterns = [
     path('register/', views.SignUpView.as_view()),
-    path('login/',views.EmailSignInView.as_view()),
     path('social/',views.SocialSignInView.as_view()),
     path('api-token-auth/', rest_views.obtain_auth_token),
     path('token-verify/',verify_jwt_token),
     path('forgetpassword/',views.ForgetPasswordView),
-
+    path('login/',views.SignInView.as_view()),
     path('changepassword/',views.ChangePasswordView)
 ]
 

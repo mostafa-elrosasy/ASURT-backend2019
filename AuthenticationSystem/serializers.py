@@ -26,6 +26,15 @@ class UsersSerializer(serializers.ModelSerializer):
 
 
 
+class UsersSignInSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'
+    username = serializers.CharField()
+    password = serializers.CharField()
+    remember_me = serializers.CharField()
+
+
 # class GroupSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = Group
