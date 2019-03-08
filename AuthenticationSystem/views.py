@@ -67,32 +67,32 @@ class SignUpView(APIView):
 #             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-#ADMIN VIEW
-class ADMIN(APIView):
+# #ADMIN VIEW
+# class ADMIN(APIView):
 
-    # @method_decorator(login_required(login_url='/signin'))
+#     # @method_decorator(login_required(login_url='/signin'))
 
-    def get(self,request):
-        # id = get_user_ID(request)
-        # if( not (UsersSignUp.objects.filter(username = id).exists())):
-        #     return Response("This user doesn't have a profile yet", status=status.HTTP_400_BAD_REQUEST)
+#     def get(self,request):
+#         # id = get_user_ID(request)
+#         # if( not (UsersSignUp.objects.filter(username = id).exists())):
+#         #     return Response("This user doesn't have a profile yet", status=status.HTTP_400_BAD_REQUEST)
 
-        Admin = User.objects.all()
-        serializer = ADMINSerializer(Admin, many=True)
-        return Response(serializer.data)
+#         Admin = User.objects.all()
+#         serializer = ADMINSerializer(Admin, many=True)
+#         return Response(serializer.data)
 
-    def post(self, request):
-        serializer = ADMINSerializer(data=request.data)
-        if serializer.is_valid():
-            RequiredUser = serializer.validated_data['username']
-            GroupToSet = serializer.validated_data['group']
-            # G = Group.objects.get(name = GroupToSet)
-            user = User.objects.get(username = RequiredUser)
-            # G.user_set.add(user)
-            # user.groups.add(GroupToSet)
-            GroupToSet.add(user)
-            return Response(status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#     def post(self, request):
+#         serializer = ADMINSerializer(data=request.data)
+#         if serializer.is_valid():
+#             RequiredUser = serializer.validated_data['username']
+#             GroupToSet = serializer.validated_data['group']
+#             # G = Group.objects.get(name = GroupToSet)
+#             user = User.objects.get(username = RequiredUser)
+#             # G.user_set.add(user)
+#             # user.groups.add(GroupToSet)
+#             GroupToSet.add(user)
+#             return Response(status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import UsersSignUp
+# from .models import UsersSignUp
 from django.contrib.auth.models import User,Group
 
 class SocialSerializer(serializers.ModelSerializer):
@@ -49,15 +49,15 @@ class UsersSignInSerializer(serializers.ModelSerializer):
 #
 
 
-class SignUpAPISerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('username','password','email','first_name',)
+# class SignUpAPISerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = User
+#         fields = ('username','password','email','first_name',)
 
 
-    def create(self, validated_data):
-        user = User.objects.get_or_create(**validated_data)
-        password = validated_data.pop('password')
-        user.set_password(password)
-        user.save()
-        return user
+#     def create(self, validated_data):
+#         user = User.objects.get_or_create(**validated_data)
+#         password = validated_data.pop('password')
+#         user.set_password(password)
+#         user.save()
+#         return user
