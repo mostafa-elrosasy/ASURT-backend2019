@@ -16,61 +16,54 @@ from django.contrib.auth.models import Group, User
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+from rest_framework_jwt.settings import api_settings
+
 
 
 
 
 
 # the the post function now contains a
-class SignUpList(APIView):
+
+class SignUpView(APIView):
     def post(self, request):
         serializer = UsersSignUpSerializer(data=request.data)
         if serializer.is_valid():
-            try:
-                #stayLoggedin value doesn't exist in the user model provided by Django so it is checked here for the token generation
-                request.data["stayLoggedIn"]
-            except KeyError:
-                return Response({"error": "Some data is missing"}, status=status.HTTP_400_BAD_REQUEST)
-
-            #needs change , swap try and except body , remove email field
-            try:
-                UsersSignUp.objects.get(email=serializer.validated_data["email"])
-            except User.objects.filter(username = serializer.validated_data["email"]).DoesNotExist:
-                try:
-                    user = User.objects.create_user(username=serializer.validated_data["email"],email=serializer.validated_data["email"],password=serializer.validated_data["password"])
-                    my_group = Group.objects.get(name='Waiting Verification')
-                    my_group.user_set.add(user)
-                except Exception:
-                    Response({"error": "Please try again later"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-                #generate token for the created User to have access to the RT website.
-                jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
-                jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
-                payload = jwt_payload_handler(user, request.data["stayLoggedIn"])
-                token = jwt_encode_handler(payload)
-                # email verification is missing (To be Done in next years)
-                return Response({"token": token}, status=status.HTTP_201_CREATED)
-# ///////////////////////////////////////////////////////////////////////////////////////////////
-            # else:
-            #     try:
-            #         #check if the email entered as a social user email that already exist
-            #         SocialUsers.objects.get(user=User.objects.get(email=serializer.validated_data["email"]))
-            #     except SocialUsers.DoesNotExist:
-            #         #No IT DOESN'T EXIST AS A SOCIAL ACCOUNT , BUT IT EXISTS AS A NORMAL ACCOUNT
-            #         return Response({"error": "The Email Already Exists!"}, status=status.HTTP_401_UNAUTHORIZED)
-            #     else:
-            #         #YES IT EXISTS AS A SOCIAL ACCOUNT
-            #         return Response({"error": "The Email exist as a social account"},status=status.HTTP_401_UNAUTHORIZED)
-
-            # defaultGroup = Group.objects.get(name='Waiting Verification')
-            # user = User.objects.create(username = serializer.validated_data['username'],)
-            # user.set_password(serializer.validated_data['password'])
-            # defaultGroup.user_set.add(user)
-            # user.save()
-            # return Response(status=status.HTTP_201_CREATED)
-    # ///////////////////////////////////////////////////////////////////////////////////////////////
-
-        else :
+            defaultGroup = Group.objects.get(name='Waiting Verification')
+            user = User.objects.create(username = serializer.validated_data['username'],email = serializer.validated_data['username'],)
+            defaultGroup = Group.objects.get(name='Waiting Verification')
+            user.set_password(serializer.validated_data['password'])
+            defaultGroup.user_set.add(user)
+            user.save()
+            jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+            jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+            payload = jwt_payload_handler(user, 'false')
+            token = jwt_encode_handler(payload)
+            return Response({"token": token}, status=status.HTTP_201_CREATED)
+        else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# # ///////////////////////////////////////////////////////////////////////////////////////////////
+#             # else:
+#             #     try:
+#             #         #check if the email entered as a social user email that already exist
+#             #         SocialUsers.objects.get(user=User.objects.get(email=serializer.validated_data["email"]))
+#             #     except SocialUsers.DoesNotExist:
+#             #         #No IT DOESN'T EXIST AS A SOCIAL ACCOUNT , BUT IT EXISTS AS A NORMAL ACCOUNT
+#             #         return Response({"error": "The Email Already Exists!"}, status=status.HTTP_401_UNAUTHORIZED)
+#             #     else:
+#             #         #YES IT EXISTS AS A SOCIAL ACCOUNT
+#             #         return Response({"error": "The Email exist as a social account"},status=status.HTTP_401_UNAUTHORIZED)
+
+#             # defaultGroup = Group.objects.get(name='Waiting Verification')
+#             # user = User.objects.create(username = serializer.validated_data['username'],)
+#             # user.set_password(serializer.validated_data['password'])
+#             # defaultGroup.user_set.add(user)
+#             # user.save()
+#             # return Response(status=status.HTTP_201_CREATED)
+#     # ///////////////////////////////////////////////////////////////////////////////////////////////
+
+#         else :
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 #ADMIN VIEW
