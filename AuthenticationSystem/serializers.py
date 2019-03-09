@@ -17,7 +17,7 @@ class SocialSerializer(serializers.ModelSerializer):
 class UsersSignUpSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('password', 'email')
+        fields = ('password', 'username')
 
 class UsersSerializer(serializers.ModelSerializer):
     class Meta:

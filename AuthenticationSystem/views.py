@@ -3,13 +3,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import UsersSignUpSerializer,UsersSerializer,SocialSerializer,UsersSignInSerializer
-# from .serializers import UsersSignUpSerializer, ADMINSerializer
 from rest_framework.parsers import JSONParser
 import io
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 from rest_framework.authentication import get_authorization_header
-# from AdminPanel.settings import api_settings
 import jwt
 from django.contrib.auth.models import Group, User
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -22,80 +20,33 @@ from django.contrib.auth import authenticate
 
 
 
-
-
-# the the post function now contains a
-
 class SignUpView(APIView):
     def post(self, request):
         serializer = UsersSignUpSerializer(data=request.data)
         if serializer.is_valid():
-            defaultGroup = Group.objects.get(name='Waiting Verification')
-            user = User.objects.create(username = serializer.validated_data['username'],email = serializer.validated_data['username'],)
-            defaultGroup = Group.objects.get(name='Waiting Verification')
-            user.set_password(serializer.validated_data['password'])
-            defaultGroup.user_set.add(user)
-            user.save()
-            jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
-            jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
-            payload = jwt_payload_handler(user, 'false')
-            token = jwt_encode_handler(payload)
-            return Response({"token": token}, status=status.HTTP_201_CREATED)
+            try:
+                serializer.validated_data["username"]
+                serializer.validated_data["password"]
+            except KeyError:
+                return Response({"error": "Some data is missing"}, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                User.objects.get(username=serializer.validated_data["username"])
+            except User.DoesNotExist:
+                try:
+                    user = User.objects.create(username = serializer.validated_data['username'],email = serializer.validated_data['username'],)
+                    defaultGroup = Group.objects.get(name='Waiting Verification')
+                    user.set_password(serializer.validated_data['password'])
+                    defaultGroup.user_set.add(user)
+                    user.save()
+                    jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+                    jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+                    payload = jwt_payload_handler(user, 'false')
+                    token = jwt_encode_handler(payload)
+                    return Response({"token": token}, status=status.HTTP_201_CREATED)
+                except:
+                    return Response({"error": "Please try again later"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-# # ///////////////////////////////////////////////////////////////////////////////////////////////
-#             # else:
-#             #     try:
-#             #         #check if the email entered as a social user email that already exist
-#             #         SocialUsers.objects.get(user=User.objects.get(email=serializer.validated_data["email"]))
-#             #     except SocialUsers.DoesNotExist:
-#             #         #No IT DOESN'T EXIST AS A SOCIAL ACCOUNT , BUT IT EXISTS AS A NORMAL ACCOUNT
-#             #         return Response({"error": "The Email Already Exists!"}, status=status.HTTP_401_UNAUTHORIZED)
-#             #     else:
-#             #         #YES IT EXISTS AS A SOCIAL ACCOUNT
-#             #         return Response({"error": "The Email exist as a social account"},status=status.HTTP_401_UNAUTHORIZED)
-
-#             # defaultGroup = Group.objects.get(name='Waiting Verification')
-#             # user = User.objects.create(username = serializer.validated_data['username'],)
-#             # user.set_password(serializer.validated_data['password'])
-#             # defaultGroup.user_set.add(user)
-#             # user.save()
-#             # return Response(status=status.HTTP_201_CREATED)
-#     # ///////////////////////////////////////////////////////////////////////////////////////////////
-
-#         else :
-#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-# #ADMIN VIEW
-# class ADMIN(APIView):
-
-#     # @method_decorator(login_required(login_url='/signin'))
-
-#     def get(self,request):
-#         # id = get_user_ID(request)
-#         # if( not (UsersSignUp.objects.filter(username = id).exists())):
-#         #     return Response("This user doesn't have a profile yet", status=status.HTTP_400_BAD_REQUEST)
-
-#         Admin = User.objects.all()
-#         serializer = ADMINSerializer(Admin, many=True)
-#         return Response(serializer.data)
-
-#     def post(self, request):
-#         serializer = ADMINSerializer(data=request.data)
-#         if serializer.is_valid():
-#             RequiredUser = serializer.validated_data['username']
-#             GroupToSet = serializer.validated_data['group']
-#             # G = Group.objects.get(name = GroupToSet)
-#             user = User.objects.get(username = RequiredUser)
-#             # G.user_set.add(user)
-#             # user.groups.add(GroupToSet)
-#             GroupToSet.add(user)
-#             return Response(status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-
 
 
 # sign in view that will contain by email
@@ -104,18 +55,39 @@ class SignInView(APIView):
     def post(self, request):
         serializer = UsersSignInSerializer(data=request.data)
         if serializer.is_valid():
-            remember_me = serializer.validated_data["remember_me"]
-            user = User.objects.get(username=serializer.validated_data["username"])
-            authenticate(username=user.username,password=serializer.validated_data["password"])
-            jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
-            jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
-            payload = jwt_payload_handler(user, remember_me)
-            token = jwt_encode_handler(payload)
-            return Response({"token":token}, status = 200)
-            
+            try:
+                serializer.validated_data["username"]
+                serializer.validated_data["password"]
+                serializer.validated_data["remember_me"]
+            except KeyError:
+                return Response({"error": "Some data is missing"}, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                user = User.objects.get(username=serializer.validated_data["username"])
+            except User.DoesNotExist:
+                return Response({"Error": "Please Sign up first","error": "Email/Password is incorrect"}, status=status.HTTP_401_UNAUTHORIZED)
+            else:
+                if authenticate(username=user.username,password=serializer.validated_data["password"]):
+                    remember_me = serializer.validated_data["remember_me"]
+                    jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+                    jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+                    payload = jwt_payload_handler(user, remember_me)
+                    token = jwt_encode_handler(payload)
+                    return Response({"token": token}, status=status.HTTP_201_CREATED)
+                else:
+                    return Response({"Error": "Password provided is wrong","error": "Email/Password is incorrect"}, status=status.HTTP_401_UNAUTHORIZED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+#user exist view that checks if the email is already used
+class UserExist(APIView):
+    def get(self, request):
+        serializer = UsersSignInSerializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                if User.objects.get(username=serializer.validated_data["username"]):
+                    return Response({"exists":"true"}, status = status.HTTP_200_OK)
+            except:
+                return Response({"exists":"false"}, status = status.HTTP_404_NOT_FOUND)
 
 
 
