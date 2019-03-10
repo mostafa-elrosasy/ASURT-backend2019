@@ -22,7 +22,7 @@ from django.contrib.auth import authenticate
 
 class SignUpView(APIView):
     def post(self, request):
-        serializer = UsersSerializer(data=request.data)
+        serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             try:
                 serializer.validated_data["email"]
@@ -107,6 +107,10 @@ class SocialAuthView(APIView):
                     return Response({"error": "The Email exist as a normal account, Please Login with your email and password"},status=status.HTTP_401_UNAUTHORIZED)
 
             #Social account registered before
+            username_temp = user.username
+            provider,socialid = username_temp.split('-')
+            if provider != request.data['provider'] and socialid != request.data['social_id'] :
+                return Response({'error':'Some Data Missing'}, status=status.HTTP_400_BAD_REQUEST)
             jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
             jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
             payload = jwt_payload_handler(user, stay_logged_in = False)
@@ -117,6 +121,14 @@ class SocialAuthView(APIView):
 
 
 
+
+# Class that contain the apis to change password.
+# HTTP methods to interact : POST request in which the password is to be actually changed
+
+
+
+
+
 class Social(APIView):
     def post(self, request):
         serializer = SocialSerializer1(data=request.data)
@@ -124,7 +136,7 @@ class Social(APIView):
         if serializer.is_valid() and social_serializer_username.is_valid() :
             #new user
             try:
-                social_serializer_username.validated_data["username"]
+                social_serializer_username.validated_data["email"]
             except KeyError:
                 return Response({"error": "Some data is missing"}, status=status.HTTP_400_BAD_REQUEST)
             try:
@@ -227,8 +239,7 @@ class ForgetPasswordView(APIView):
             reset_password_link = "http://sys.asuracingteam.org/changePassword/" + token + "/"
             # prepare the email content to be sent.
             email_content = "Click on This link to Proceed:<br><br>" + "<a href="+reset_password_link+">Reset Password</a><br><br>ASU Racing Team"
-            return Response({"success": "Email Sent Successfully"}, status=status.HTTP_202_ACCEPTED)
-            # return sendRTMail(sender = settings.EMAIL_HOST_USER, receiverList = [user.email],subject ='Password Reset',content = email_content )
+            return sendRTMail(sender = settings.EMAIL_HOST_USER, receiverList = [user.email],subject ='Password Reset',content = email_content )
 
 # Class that contain the apis to change password.
 # HTTP methods to interact : POST request in which the password is to be actually changed
