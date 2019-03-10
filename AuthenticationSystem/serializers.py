@@ -29,7 +29,7 @@ class UsersSignUpSerializer(serializers.ModelSerializer):
 
 class UsersSerializer(serializers.ModelSerializer):
     class Meta:
-        model = UsersSignUp
+        model = User
         fields = '__all__'
     username = serializers.CharField()
     password = serializers.CharField()

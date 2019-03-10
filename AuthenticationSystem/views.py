@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import UsersSignUpSerializer,UsersSerializer,UsersSignInSerializer,SocialSerializer1,SocialSerializer2
+from .serializers import UserSerializer,UsersSerializer,UsersSignInSerializer,SocialSerializer1,SocialSerializer2
 from rest_framework.parsers import JSONParser
 import io
 from rest_framework.permissions import IsAuthenticated
@@ -22,7 +22,7 @@ from django.contrib.auth import authenticate
 
 class SignUpView(APIView):
     def post(self, request):
-        serializer = UsersSignUpSerializer(data=request.data)
+        serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             try:
                 serializer.validated_data["username"]
@@ -182,10 +182,10 @@ class ForgetPasswordView(APIView):
             return Response({"error": "some data is missing"}, status=status.HTTP_400_BAD_REQUEST)
         try:
             #check that a user with that email already exist
-            user = UsersSignUp.objects.get(username=request.data["email"])
+            user = User.objects.get(username=request.data["email"])
             if user.email!="":
                 return Response({"error": "Can't reset a social account password"}, status=status.HTTP_401_UNAUTHORIZED)
-        except UsersSignUp.DoesNotExist:
+        except User.DoesNotExist:
             return Response({"error": "Email doesn't exist"}, status=status.HTTP_401_UNAUTHORIZED)
         # try:
         #     #check that the email inserted is not a social account email.
@@ -225,7 +225,7 @@ class ChangePasswordView(APIView):
             return Response({"error": "Token Expired"}, status=status.HTTP_401_UNAUTHORIZED)
         try:
             user = User.objects.get(username=token_info["username"])
-        except UsersSignUp.DoesNotExist:
+        except User.DoesNotExist:
             return Response({"error": "token is wrong"}, status=status.HTTP_401_UNAUTHORIZED)
         try:
             user.set_password(request.data["password"])
@@ -250,8 +250,8 @@ class ChangePasswordView(APIView):
 #             except KeyError:
 #                 return Response({"error": "Some data is missing"}, status=status.HTTP_400_BAD_REQUEST)
 #             try:
-#                 user = UsersSignUp.objects.get(username=serializer.validated_data["email"])
-#             except UsersSignUp.DoesNotExist:
+#                 user = User.objects.get(username=serializer.validated_data["email"])
+#             except User.DoesNotExist:
 #                 return Response({"Error": "Please Sign up first","error": "Email/Password is incorrect"}, status=status.HTTP_401_UNAUTHORIZED)
 #             else:
 #                 #sign in to the system
@@ -265,8 +265,8 @@ class ChangePasswordView(APIView):
 #                 else:
 #                     #not a normal user , then check the social user table
 #                     try:
-#                         UsersSignUp.objects.get(user=user)
-#                     except UsersSignUp.DoesNotExist:
+#                         User.objects.get(user=user)
+#                     except User.DoesNotExist:
 #                         #no , then there is something wrong with the data inserted.
 #                         return Response({"Error": "Password provided is wrong","error": "Email/Password is incorrect"}, status=status.HTTP_401_UNAUTHORIZED)
 #                     else:
