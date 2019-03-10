@@ -218,7 +218,7 @@ class ForgetPasswordView(APIView):
         try:
             #check that a user with that email already exist
             user = User.objects.get(username=request.data["email"])
-            if user.email!="":
+            if user.email!=user.username:
                 return Response({"error": "Can't reset a social account password"}, status=status.HTTP_401_UNAUTHORIZED)
         except User.DoesNotExist:
             return Response({"error": "Email doesn't exist"}, status=status.HTTP_401_UNAUTHORIZED)
