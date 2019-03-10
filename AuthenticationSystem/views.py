@@ -2,13 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-<<<<<<< HEAD
-from .models import UsersSignUp
-from .serializers import UsersSignUpSerializer,UsersSerializer,SocialSerializer1,SocialSerializer2
-# from .serializers import UsersSignUpSerializer, ADMINSerializer
-=======
-from .serializers import UsersSignUpSerializer,UsersSerializer,SocialSerializer,UsersSignInSerializer
->>>>>>> 7be1c400f980dfd06fb9d56ad5d878784014b9ef
+from .serializers import UsersSignUpSerializer,UsersSerializer,UsersSignInSerializer,SocialSerializer1,SocialSerializer2
 from rest_framework.parsers import JSONParser
 import io
 from rest_framework.permissions import IsAuthenticated
@@ -84,10 +78,6 @@ class SignInView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-<<<<<<< HEAD
-    def get(self,request):
-        return Response({"success": "you are in login"}, status=status.HTTP_201_CREATED)
-=======
 #user exist view that checks if the email is already used
 class UserExist(APIView):
     def get(self, request):
@@ -102,7 +92,6 @@ class UserExist(APIView):
 
 
 
->>>>>>> 7be1c400f980dfd06fb9d56ad5d878784014b9ef
 
 
 
@@ -194,7 +183,7 @@ class ForgetPasswordView(APIView):
         try:
             #check that a user with that email already exist
             user = UsersSignUp.objects.get(username=request.data["email"])
-            if user.provider!="":
+            if user.email!="":
                 return Response({"error": "Can't reset a social account password"}, status=status.HTTP_401_UNAUTHORIZED)
         except UsersSignUp.DoesNotExist:
             return Response({"error": "Email doesn't exist"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -235,7 +224,7 @@ class ChangePasswordView(APIView):
         except:
             return Response({"error": "Token Expired"}, status=status.HTTP_401_UNAUTHORIZED)
         try:
-            user = UsersSignUp.objects.get(username=token_info["username"])
+            user = User.objects.get(username=token_info["username"])
         except UsersSignUp.DoesNotExist:
             return Response({"error": "token is wrong"}, status=status.HTTP_401_UNAUTHORIZED)
         try:

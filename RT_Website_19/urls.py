@@ -16,28 +16,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_jwt.views import verify_jwt_token
-<<<<<<< HEAD
 
 from AuthenticationSystem import urls as ASystem
-=======
-from AuthenticationSystem import views
-from AuthenticationSystem import urls as AuthenticationSystem
->>>>>>> 7be1c400f980dfd06fb9d56ad5d878784014b9ef
 from ProfileSystem import urls as ProfileSystem
 
 
 urlpatterns = [
     path('', include(ASystem)),
     path('token-verify/', verify_jwt_token),
-<<<<<<< HEAD
     path('admin/', admin.site.urls)
-=======
-    path('admin/', admin.site.urls),
-    path('register/', views.SignUpView.as_view()),
-    path('signin/', views.SignInView.as_view()),
-    path('user-exist/', views.UserExist.as_view()),
-
-    path('/', include(AuthenticationSystem)),
->>>>>>> 7be1c400f980dfd06fb9d56ad5d878784014b9ef
     # path('api/Profile/', include(ProfileSystem)),
 ]

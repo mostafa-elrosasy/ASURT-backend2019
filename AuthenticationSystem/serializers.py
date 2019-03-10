@@ -24,46 +24,8 @@ class SocialSerializer2(serializers.ModelSerializer):
 
 class UsersSignUpSerializer(serializers.ModelSerializer):
     class Meta:
-<<<<<<< HEAD
-        model = UsersSignUp
-        fields = '__all__'
-    username = serializers.CharField()
-    password = serializers.CharField()
-    remember_me = serializers.CharField()
-    def validate (self, data):
-        username = data.get("username", "")
-        password = data.get("password", "")
-        remember_me = data.get("remember_me", "")
-
-        if username and password:
-            user = authenticate(username = username , password = password)
-            if user:
-                if user.is_active:
-                    data["user"] = user
-                else:
-                    msg = "Account is not Activated"
-                    return Response(msg, status = 400)
-
-            else:
-                msg = "Unable to login using the given cridentials."
-                return Response(msg, status = 400)
-        else:
-            msg = "Must provide username and password"
-            return Response(msg , status = 400)
-        return data
-
-
-
-
-
-# class UsersSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = User
-#         fields = ('email','password','remember_me')
-=======
         model = User
         fields = ('password', 'username')
->>>>>>> 7be1c400f980dfd06fb9d56ad5d878784014b9ef
 
 class UsersSerializer(serializers.ModelSerializer):
     class Meta:
