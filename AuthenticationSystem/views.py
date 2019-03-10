@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import UsersSerializer,UsersSignInSerializer,SocialSerializer1,SocialSerializer2
+from .serializers import UsersSignUpSerializer,UsersSignInSerializer,SocialSerializer1,SocialSerializer2
 from rest_framework.parsers import JSONParser
 import io
 from rest_framework.permissions import IsAuthenticated
@@ -15,14 +15,15 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from rest_framework_jwt.settings import api_settings
 from django.contrib.auth import authenticate
+import random,string
 
 
-
-
+def password_generator(length = 8, chars=string.ascii_letters + '@%_' ):
+    return ''.join(random.choice(chars) for _ in range(length))
 
 class SignUpView(APIView):
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
+        serializer = UsersSignUpSerializer(data=request.data)
         if serializer.is_valid():
             try:
                 serializer.validated_data["email"]
@@ -30,10 +31,10 @@ class SignUpView(APIView):
             except KeyError:
                 return Response({"error": "Some data is missing"}, status=status.HTTP_400_BAD_REQUEST)
             try:
-                User.objects.get(username=serializer.validated_data["username"])
+                User.objects.get(username=serializer.validated_data["email"])
             except User.DoesNotExist:
                 try:
-                    user = User.objects.create(username = serializer.validated_data['username'],email = serializer.validated_data['username'],)
+                    user = User.objects.create_user(username = serializer.validated_data['email'],email = serializer.validated_data['email'])
                     defaultGroup = Group.objects.get(name='Waiting Verification')
                     user.set_password(serializer.validated_data['password'])
                     defaultGroup.user_set.add(user)
@@ -99,7 +100,7 @@ class SocialAuthView(APIView):
             except User.DoesNotExist:
                 # Create new account with social data
                 user = User.objects.create_user(username=(request.data['provider'] + '-' + request.data['social_id']),email=request.data["email"],password= password_generator(length=8) )
-                my_group = Group.objects.get(name='NOT_VERIFIED')
+                my_group = Group.objects.get(name='Waiting Verification')
                 my_group.user_set.add(user)
             else:
                 if user.username == user.email:
@@ -113,7 +114,7 @@ class SocialAuthView(APIView):
                 return Response({'error':'Some Data Missing'}, status=status.HTTP_400_BAD_REQUEST)
             jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
             jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
-            payload = jwt_payload_handler(user, stay_logged_in = False)
+            payload = jwt_payload_handler(user, 'false')
             token = jwt_encode_handler(payload)
             return Response({"token": token}, status=status.HTTP_201_CREATED)
         else:

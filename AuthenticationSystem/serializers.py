@@ -25,22 +25,22 @@ class SocialSerializer2(serializers.ModelSerializer):
 class UsersSignUpSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('password', 'username')
+        fields = ('password', 'email')
 
 class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = '__all__'
-    username = serializers.CharField()
-    password = serializers.CharField()
+        fields = ('password', 'email','remember_me')
+    # email = serializers.CharField()
+    # password = serializers.CharField()
     # tdvalue = serializers.DecimalField(max_digits = 10000, decimal_places = 0)
     remember_me = serializers.CharField()
     def validate (self, data):
-        username = data.get("email", "")
+        email = data.get("email", "")
         password = data.get("password", "")
 
         if username and password:
-            user = authenticate(username = username , password = password)
+            user = authenticate(username = email , password = password)
             if user:
                 if user.is_active:
                     data["user"] = user
@@ -60,9 +60,9 @@ class UsersSerializer(serializers.ModelSerializer):
 class UsersSignInSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = '__all__'
-    username = serializers.CharField()
-    password = serializers.CharField()
+        fields = ('password', 'email','remember_me')
+    # username = serializers.CharField()
+    # password = serializers.CharField()
     remember_me = serializers.CharField()
 
 
