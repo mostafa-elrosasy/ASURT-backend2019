@@ -25,7 +25,7 @@ class SignUpView(APIView):
         serializer = UsersSerializer(data=request.data)
         if serializer.is_valid():
             try:
-                serializer.validated_data["username"]
+                serializer.validated_data["email"]
                 serializer.validated_data["password"]
             except KeyError:
                 return Response({"error": "Some data is missing"}, status=status.HTTP_400_BAD_REQUEST)
@@ -56,13 +56,13 @@ class SignInView(APIView):
         serializer = UsersSignInSerializer(data=request.data)
         if serializer.is_valid():
             try:
-                serializer.validated_data["username"]
+                serializer.validated_data["email"]
                 serializer.validated_data["password"]
                 serializer.validated_data["remember_me"]
             except KeyError:
                 return Response({"error": "Some data is missing"}, status=status.HTTP_400_BAD_REQUEST)
             try:
-                user = User.objects.get(username=serializer.validated_data["username"])
+                user = User.objects.get(username=serializer.validated_data["email"])
             except User.DoesNotExist:
                 return Response({"Error": "Please Sign up first","error": "Email/Password is incorrect"}, status=status.HTTP_401_UNAUTHORIZED)
             else:

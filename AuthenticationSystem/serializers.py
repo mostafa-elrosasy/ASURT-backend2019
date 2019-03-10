@@ -36,9 +36,8 @@ class UsersSerializer(serializers.ModelSerializer):
     # tdvalue = serializers.DecimalField(max_digits = 10000, decimal_places = 0)
     remember_me = serializers.CharField()
     def validate (self, data):
-        username = data.get("username", "")
+        username = data.get("email", "")
         password = data.get("password", "")
-        tdvalue = data.get("remember_me", "")
 
         if username and password:
             user = authenticate(username = username , password = password)
