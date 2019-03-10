@@ -1,29 +1,94 @@
 from rest_framework import serializers
 from .models import UsersSignUp
 from django.contrib.auth.models import User,Group
+from django.contrib.auth import authenticate
 
-class SocialSerializer(serializers.ModelSerializer):
+providers = [('facebook', 'Facebook'), ('google', 'Google'), ('email', 'Email')]
+
+
+class SocialSerializer1(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('email','provider','socialID')
+        fields = ('email','password','remember_me')
+    remember_me = serializers.BooleanField()
 
 
-# class SocialUsersSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = User
-#         fields = ('email',)
+
+class SocialSerializer2(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username',)
+
+
 
 
 class UsersSignUpSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = ('password', 'email')
+        model = UsersSignUp
+        fields = '__all__'
+    username = serializers.CharField()
+    password = serializers.CharField()
+    remember_me = serializers.CharField()
+    def validate (self, data):
+        username = data.get("username", "")
+        password = data.get("password", "")
+        remember_me = data.get("remember_me", "")
+
+        if username and password:
+            user = authenticate(username = username , password = password)
+            if user:
+                if user.is_active:
+                    data["user"] = user
+                else:
+                    msg = "Account is not Activated"
+                    return Response(msg, status = 400)
+
+            else:
+                msg = "Unable to login using the given cridentials."
+                return Response(msg, status = 400)
+        else:
+            msg = "Must provide username and password"
+            return Response(msg , status = 400)
+        return data
+
+
+
+
+
+# class UsersSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = User
+#         fields = ('email','password','remember_me')
 
 class UsersSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = ('email','password','remember_me')
+        model = UsersSignUp
+        fields = '__all__'
+    username = serializers.CharField()
+    password = serializers.CharField()
+    # tdvalue = serializers.DecimalField(max_digits = 10000, decimal_places = 0)
+    remember_me = serializers.CharField()
+    def validate (self, data):
+        username = data.get("username", "")
+        password = data.get("password", "")
+        tdvalue = data.get("remember_me", "")
 
+        if username and password:
+            user = authenticate(username = username , password = password)
+            if user:
+                if user.is_active:
+                    data["user"] = user
+                else:
+                    msg = "Account is not Activated"
+                    return Response(msg, status = 400)
+
+            else:
+                msg = "Unable to login using the given cridentials."
+                return Response(msg, status = 400)
+        else:
+            msg = "Must provide username and password"
+            return Response(msg , status = 400)
+        return data
 
 
 # class GroupSerializer(serializers.ModelSerializer):

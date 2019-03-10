@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import UsersSignUp
-from .serializers import UsersSignUpSerializer,UsersSerializer,SocialSerializer
+from .serializers import UsersSignUpSerializer,UsersSerializer,SocialSerializer1,SocialSerializer2
 # from .serializers import UsersSignUpSerializer, ADMINSerializer
 from rest_framework.parsers import JSONParser
 import io
@@ -144,45 +144,84 @@ class EmailSignInView(APIView):
             #Invalid data inserted
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def get(self,request):
+        return Response({"success": "you are in login"}, status=status.HTTP_201_CREATED)
 
 
-class SocialSignInView(APIView):
 
+class Social(APIView):
     def post(self, request):
-        social_serializer = SocialSerializer(data=request.data)
-        if social_serializer.is_valid():
+        serializer = SocialSerializer1(data=request.data)
+        social_serializer_username = SocialSerializer2(data=request.data)
+        if serializer.is_valid() and social_serializer_username.is_valid() :
+            #new user
             try:
-                user = UsersSignUp.objects.get(username=social_serializer.validated_data["email"])
-            except UsersSignUp.DoesNotExist:
-                # return Response({"error": "Social account doesn't exist, Please sign up first"}, status=status.HTTP_401_UNAUTHORIZED)
+                social_serializer_username.validated_data["username"]
+            except KeyError:
+                return Response({"error": "Some data is missing"}, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                #1)checking whether the account already exists as a SOCIAL USER or not ?
+                user = User.objects.get(password=serializer.validated_data["password"])
+            except Exception as e:
+                #1.1)No it doesn't exist as a socialUser , then check the normal user table
                 try:
-                    user = UsersSignUp.objects.get(password=social_serializer.validated_data["socialID"])
-                except UsersSignUp.DoesNotExist:
-                    user = UsersSignUp.objects.create_user(username=social_serializer.validated_data["email"],password=social_serializer_email.validated_data["password"],proprovider=social_serializer_email.validated_data["provider"])
-                    social_serializer.save(user=user)
-                    my_group = Group.objects.get(name='NOT_VERIFIED')
-                    my_group.user_set.add(user)
-                else:
-                    if social_serializer.validated_data["provider"] == user.provider:
-                        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
-                        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
-                        payload = jwt_payload_handler(user.user)
-                        token = jwt_encode_handler(payload)
-                        return Response({"token": token}, status=status.HTTP_201_CREATED)
-                    else:
-                        return Response({"Error": "Social provider is wrong"}, status=status.HTTP_401_UNAUTHORIZED)
-            else:
-                if social_serializer.validated_data["provider"] == user.provider:
+                    user = User.objects.get(username=social_serializer_username.validated_data["username"])
+                except User.DoesNotExist:
+                    try:
+                        #1.1.1) not Found in any of the 2 tables (SocialUsers and User), then add this Social Account
+                        user = User.objects.create_user(username=social_serializer_username.data['username'],password=serializer.validated_data['password'],email=serializer.validated_data['email'])
+                        serializer.save()
+                        # return Response(status=status.HTTP_200_OK)
+                        my_group = Group.objects.get(name='Default')
+                        my_group.user_set.add(user)
+                    except Exception as e:
+                        print(e)
+                        # return Response({"error": "Please try again later","content":str(e)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
                     jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
                     jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
-                    payload = jwt_payload_handler(user.user)
+                    payload = jwt_payload_handler(user, serializer.validated_data["remember_me"])
+                    token = jwt_encode_handler(payload)
+                    return Response({"token": token}, status=status.HTTP_201_CREATED)
+                else:
+                    #1.1.2) exists as a normal user account, so won't be created again
+                    return Response({"error": "The Account Already Exists, you should login using your Email"},status=status.HTTP_401_UNAUTHORIZED)
+            else:
+                #1.2)YES that account already exist so, won't created again.
+                jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+                jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+                payload = jwt_payload_handler(user.user, serializer.validated_data["remember_me"])
+                token = jwt_encode_handler(payload)
+                return Response({"token": token}, status=status.HTTP_201_CREATED)
+
+        elif serializer.is_valid() and not social_serializer_username.is_valid():
+            #existing user
+            try:
+                user = User.objects.get(password=serializer.validated_data["password"])
+            except User.DoesNotExist:
+                print("error")
+                # return Response({"error": "Social account doesn't exist, Please sign up first"}, status=status.HTTP_401_UNAUTHORIZED)
+            else:
+                if serializer.validated_data["email"] == user.email:
+                    jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+                    jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+                    payload = jwt_payload_handler(user.user, serializer.validated_data["remember_me"])
                     token = jwt_encode_handler(payload)
                     return Response({"token": token}, status=status.HTTP_201_CREATED)
                 else:
                     return Response({"Error": "Social provider is wrong"}, status=status.HTTP_401_UNAUTHORIZED)
-        else:
-            return Response(social_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        else:
+            # wrong data
+            #collect errors in data submitted to be sent to client side.
+            social_serializer_username.is_valid()
+            serializer.is_valid()
+            errors = serializer.errors
+            errors.update(social_serializer_username.errors)
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+    def get(self, request):
+        return Response(status=status.HTTP_200_OK)
 
 
 # Class that contain the apis for processing forget password issue.
