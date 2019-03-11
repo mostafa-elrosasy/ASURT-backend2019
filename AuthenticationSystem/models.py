@@ -21,3 +21,11 @@ group_created = Group.objects.get_or_create(name = 'Multimedia -Specialist')
 group_created = Group.objects.get_or_create(name = 'PR & Social Media -Specialist')
 group_created = Group.objects.get_or_create(name = 'HR Recruitment -Specialist')
 group_created = Group.objects.get_or_create(name = 'Business Development -Specialist')
+
+
+
+
+class Error(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default = 1)
+    error = models.CharField(max_length = 500)
+    time = models.DateTimeField()
