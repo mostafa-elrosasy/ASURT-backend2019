@@ -46,6 +46,9 @@ class SignUpView(APIView):
                     return Response({"token": token}, status=status.HTTP_201_CREATED)
                 except:
                     return Response({"error": "Please try again later"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            else:
+                    return Response({"error": "User exists before"}, status=status.HTTP_406_NOT_ACCEPTABLE)
+
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
