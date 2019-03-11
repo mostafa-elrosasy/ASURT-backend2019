@@ -13,9 +13,9 @@ urlpatterns = [
     path('social/',views.SocialAuthView.as_view()),
     path('api-token-auth/', rest_views.obtain_auth_token),
     path('token-verify/',verify_jwt_token),
-    path('forgetpassword/',views.ForgetPasswordView),
+    path('forget-password/',views.ForgetPasswordView.as_view()),
     path('login/',views.SignInView.as_view()),
-    path('changepassword/',views.ChangePasswordView)
+    path('change-password/',views.ChangePasswordView.as_view())
 ]
 
 

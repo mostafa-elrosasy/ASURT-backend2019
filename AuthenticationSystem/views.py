@@ -218,7 +218,7 @@ class ForgetPasswordView(APIView):
         try:
             #check that a user with that email already exist
             user = User.objects.get(username=request.data["email"])
-            if user.email!="":
+            if user.email != user.username:
                 return Response({"error": "Can't reset a social account password"}, status=status.HTTP_401_UNAUTHORIZED)
         except User.DoesNotExist:
             return Response({"error": "Email doesn't exist"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -237,10 +237,11 @@ class ForgetPasswordView(APIView):
             payload = jwt_payload_handler(user, 2)
             token = jwt_encode_handler(payload)
             # prepare the link to be sent in order for the user to use to change the password
-            reset_password_link = "http://sys.asuracingteam.org/changePassword/" + token + "/"
+            reset_password_link = "http://http://localhost:4200/auth/change-password/" + token + "/"
             # prepare the email content to be sent.
             email_content = "Click on This link to Proceed:<br><br>" + "<a href="+reset_password_link+">Reset Password</a><br><br>ASU Racing Team"
-            return sendRTMail(sender = settings.EMAIL_HOST_USER, receiverList = [user.email],subject ='Password Reset',content = email_content )
+            return Response({"success": "Email sent: " + reset_password_link}, status=status.HTTP_200_OK)
+            # return sendRTMail(sender = settings.EMAIL_HOST_USER, receiverList = [user.email],subject ='Password Reset',content = email_content )
 
 # Class that contain the apis to change password.
 # HTTP methods to interact : POST request in which the password is to be actually changed
