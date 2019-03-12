@@ -26,6 +26,6 @@ from ProfileSystem import urls as ProfileSystem
 urlpatterns = [
     path('api/auth/', include(ASystem)),
     path('token-verify/', verify_jwt_token),
-    path('admin/', admin.site.urls)
+    path('admin/', admin.site.urls),
     path('api/profile/', include(ProfileSystem)),
 ]
