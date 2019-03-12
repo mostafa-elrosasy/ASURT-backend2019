@@ -10,7 +10,7 @@ from datetime import datetime
 from rest_framework_jwt.compat import get_username
 from rest_framework_jwt.compat import get_username_field
 from rest_framework_jwt.settings import api_settings
-#from AuthSystem.serializers import GroupSerializer
+# from AuthenticationSystem.serializers import GroupSerializer
 import json
 from ProfileSystem.models import Profile
 
