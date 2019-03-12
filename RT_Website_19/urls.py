@@ -27,5 +27,5 @@ urlpatterns = [
     path('api/auth/', include(ASystem)),
     path('token-verify/', verify_jwt_token),
     path('admin/', admin.site.urls)
-    # path('api/Profile/', include(ProfileSystem)),
+    path('api/profile/', include(ProfileSystem)),
 ]
