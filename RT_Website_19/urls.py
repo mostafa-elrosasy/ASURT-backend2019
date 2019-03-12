@@ -20,9 +20,6 @@ from rest_framework_jwt.views import verify_jwt_token
 from AuthenticationSystem import urls as ASystem
 from ProfileSystem import urls as ProfileSystem
 
-
-
-
 urlpatterns = [
     path('api/auth/', include(ASystem)),
     path('token-verify/', verify_jwt_token),
