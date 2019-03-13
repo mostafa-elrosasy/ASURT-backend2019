@@ -2,7 +2,8 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Profile, User, Error
+from .models import Profile, User
+from AuthenticationSystem.models import Error
 from .serializers import ProfileSerializer
 import base64
 from django.core.files.base import ContentFile

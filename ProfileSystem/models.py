@@ -22,10 +22,10 @@ class Profile(models.Model):
     passport_img= models.FileField(upload_to='pics')
     user = models.ForeignKey(User, on_delete=models.CASCADE, default = 1)
 
-class Error(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, default = 1)
-    error= models.CharField(max_length=500)
-    time= models.DateTimeField()
+# class Error(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE, default = 1)
+#     error= models.CharField(max_length=500)
+#     time= models.DateTimeField()
 
 
 
