@@ -96,11 +96,16 @@ class profile(APIView):
             if(not (Profile.objects.filter(user=id).exists())):
                 return Response("This user doesn't have a profile yet", status=status.HTTP_400_BAD_REQUEST)
             profiles=Profile.objects.filter(user=id).first()
-            # checks if the national ID images are empty
-            if(request.data["national_front"]=="" or request.data["national_back"] == ""):
-                serializer= EditProfileSerializer(profiles,data=request.data)
-            else:
-                serializer = ProfileSerializer(profiles,data=request.data)
+            # checks if there are empty images
+            if(request.data["national_front"]==""):
+                request.data.pop('national_front',None)
+            if(request.data["national_back"]==""):
+                request.data.pop('national_back',None)
+            if(request.data["profile_pic"]==""):
+                request.data.pop('profile_pic',None)
+            if(request.data["passport_img"]==""):
+                request.data.pop('passport_img',None)
+            serializer = EditProfileSerializer(profiles,data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 # Stores "Edit Profile" activity in the database
