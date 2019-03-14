@@ -43,9 +43,17 @@ class SignUpView(APIView):
                 try:
                     User.objects.get(username=serializer.validated_data["email"])
                 except User.DoesNotExist:
+                    if Group.objects.filter(name = 'Waiting Verification') is not None:
+                        defaultGroup = Group.objects.get(name='Waiting Verification')
+                    else:
+                        defaultGroup = Group.objects.get_or_create(name = 'Waiting Verification')
                     try:
                         user = User.objects.create_user(username = serializer.validated_data['email'],email = serializer.validated_data['email'])
-                        defaultGroup = Group.objects.get(name='Waiting Verification')
+                        
+
+
+                        # defaultGroup = Group.objects.get_or_create(name = 'Waiting Verification')
+
                         user.set_password(serializer.validated_data['password'])
                         defaultGroup.user_set.add(user)
                         user.save()
