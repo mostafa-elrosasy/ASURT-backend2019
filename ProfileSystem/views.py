@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Profile, User
 from AuthenticationSystem.models import Error
-from .serializers import ProfileSerializer
+from .serializers import ProfileSerializer, EditProfileSerializer
 import base64
 from django.core.files.base import ContentFile
 from rest_framework.permissions import IsAuthenticated
@@ -88,8 +88,6 @@ class profile(APIView):
 # it gets the new data from the user to edit his profile
     def put(self, request):
         try:
-            if(request.data["national_front"]=="" or request.data["national_back"] == ""):
-                return Response("The national ID images can't be  blank", status=status.HTTP_400_BAD_REQUEST)
             # gets the ID of the user that sent the request
             id =get_user_ID(request)
             if (id == -1):
@@ -98,7 +96,11 @@ class profile(APIView):
             if(not (Profile.objects.filter(user=id).exists())):
                 return Response("This user doesn't have a profile yet", status=status.HTTP_400_BAD_REQUEST)
             profiles=Profile.objects.filter(user=id).first()
-            serializer = ProfileSerializer(profiles,data=request.data)
+            # checks if the national ID images are empty
+            if(request.data["national_front"]=="" or request.data["national_back"] == ""):
+                serializer= EditProfileSerializer(profiles,data=request.data)
+            else:
+                serializer = ProfileSerializer(profiles,data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 # Stores "Edit Profile" activity in the database

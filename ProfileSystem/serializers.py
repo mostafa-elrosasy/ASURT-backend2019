@@ -11,3 +11,12 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = '__all__'
+
+
+class EditProfileSerializer(serializers.ModelSerializer):
+    profile_pic = Base64FileField(max_length=None, use_url=True)
+    passport_img = Base64FileField(max_length=None, use_url=True)
+
+    class Meta:
+        model = Profile
+        exclude=('national_front','national_back')
