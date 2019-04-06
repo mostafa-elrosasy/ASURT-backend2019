@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'ProfileSystem',
     'AuthenticationSystem',
+    'WebsiteSystem',
     "pinax.eventlog",
 ]
 
