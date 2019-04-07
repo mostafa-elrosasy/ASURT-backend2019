@@ -1,12 +1,13 @@
 from django.shortcuts import render
-from .models import Sponsor
+from .models import Sponsor, Image
 from .serializers import SponsorSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.http import Http404
 
 
-class SponsorView (APIView):
+class SponsorGetView (APIView):
     def get(self,request):
         try:
             sponsors= Sponsor.objects.all()
@@ -15,7 +16,8 @@ class SponsorView (APIView):
         except Exception :
             return Response("An error has happened!", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def post(self, request):
+class SponsorPostView (APIView):
+    def post(self, request): #still has to link image table
         try:
             serializer= SponsorSerializer(data= request.data)
             if serializer.is_valid():
@@ -23,13 +25,16 @@ class SponsorView (APIView):
                 return Response(serializer.data, status=True)
         except Exception :
             return Response("An error has happened!", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-    def delete(self, request):
+
+class SponsorDelView (APIView): #error in url
+    def delete(self, request,pk):
         try:
-            sponsers = Sponsor.objects.filter().first
-            sponsers.delete()
-            return Response(status= status.HTTP_204_NO_CONTENT)
-        except Exception:
-            return Response ("An error has happened!", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            sponsors = Sponsor.objects.get(id=pk)
+            #serializer= SponsorSerializer(sponsors)
+            #return Response(serializer.data)
+        except Sponsor.DoesNotExist:
+            raise Http404
+        sponsors.delete()
+        return Response(status= status.HTTP_204_NO_CONTENT)
 
 

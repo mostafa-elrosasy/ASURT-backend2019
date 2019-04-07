@@ -3,6 +3,8 @@ from WebsiteSystem import views
 from django.conf.urls import url
 
 urlpatterns = [
-    path('', views.SponsorView.as_view()),
+    path('all/', views.SponsorGetView.as_view()),
+    path('', views.SponsorPostView.as_view()),
+    path('(?P<pk>[0-9]+)/$', views.SponsorDelView.as_view()),
 ]
 
