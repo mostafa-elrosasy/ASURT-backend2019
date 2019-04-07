@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import Sponsor, Image
+from .models import Sponsor, Image, Team
 from .serializers import SponsorSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -38,3 +38,16 @@ class SponsorDelView (APIView): #error in url
         return Response(status= status.HTTP_204_NO_CONTENT)
 
 
+class TeamView (APIView):
+    def get (self,request):
+        pass
+
+    def post (self, request):
+        pass
+
+class TeamEditView (APIView):
+    def put (self, request, pk):
+        pass
+    
+    def delete (self, request, pk):
+        pass
