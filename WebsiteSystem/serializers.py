@@ -14,15 +14,17 @@ class EventSerializer (serializers.ModelSerializer):
         model = Event
         fields = '__all__'
 
-class NewsFeedSerializer (serializers.ModelSerializer):
-    class Meta:
-        model = NewsFeed
-        fields = '__all__'
-
 class ImageSerializer(serializers.ModelSerializer):
     image = Base64FileField(max_length=None)
 
     class Meta:
         model = Image
         fields = '__all__'
+        
+class NewsFeedSerializer (serializers.ModelSerializer):
+    image = ImageSerializer(read_only=True, many=True)
+    class Meta:
+        model = NewsFeed
+        fields = '__all__'
+
 
