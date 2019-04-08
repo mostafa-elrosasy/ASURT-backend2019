@@ -88,9 +88,6 @@ class NewsFeedView(APIView):
         pages = Paginator(news, 2)
         page = pages.page(page_number)
         serializer = NewsFeedSerializer(page, many= True)
-        # error: the id is returned instead of the value
-        # for i in serializer.data:
-        #     i["image"]=i.related.all()
         data["num_pages"]=pages.num_pages
         data["articles"]= serializer.data
         return Response(data)
