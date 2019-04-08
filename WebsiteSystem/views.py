@@ -1,6 +1,6 @@
 from django.shortcuts import render
-from .models import Sponsor, Image, Team
-from .serializers import SponsorSerializer
+from .models import Sponsor, Image, Team , Event
+from .serializers import SponsorSerializer, EventSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -36,6 +36,34 @@ class SponsorDelView (APIView): #error in url
             raise Http404
         sponsors.delete()
         return Response(status= status.HTTP_204_NO_CONTENT)
+
+class Events (APIView):
+    def get(self, request):
+        try:
+            Events = Event.objects.all()
+            serializer = EventSerializer(Events, many = True)
+            return Response(serializer.data)
+        except Exception:
+            return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request):
+        serializer = EventSerializer(data=request.data)
+        if serializer.is_valid():
+            event = Event.objects.create
+
+    #Put Method to edit existing event
+
+    #Delete Method to delete event
+
+class ActiveEvents (APIView):
+    def get(self, request):
+        try:
+            Events = Event.objects.filter(status = "True")
+            serializer = EventSerializer(Events, many = True)
+            return Response(serializer.data)
+        except Exception:
+            return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 class TeamView (APIView):
