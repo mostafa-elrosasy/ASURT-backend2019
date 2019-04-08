@@ -23,7 +23,7 @@ class NewsFeed(models.Model):
     description = models.CharField(max_length=500)
     date = models.DateField()
     status= models.BooleanField()
-    news_type = models.CharField(max_length=100)
+    article_type = models.CharField(max_length=100)
     vedio = models.URLField()
     image = models.ManyToManyField(Image)
 

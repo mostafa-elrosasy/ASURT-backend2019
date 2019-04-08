@@ -1,10 +1,11 @@
 from django.shortcuts import render
-from .models import Sponsor, Image, Team , Event
-from .serializers import SponsorSerializer, EventSerializer
+from .models import Sponsor, Image, Team , Event, NewsFeed
+from .serializers import SponsorSerializer, EventSerializer, NewsFeedSerializer, ImageSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import Http404
+from django.core.paginator import Paginator
 
 
 class SponsorGetView (APIView):
@@ -79,3 +80,34 @@ class TeamEditView (APIView):
     
     def delete (self, request, pk):
         pass
+
+class NewsFeedView(APIView):
+    def get(self, request, page_number):
+        data={}
+        news = NewsFeed.objects.all()
+        pages = Paginator(news, 2)
+        page = pages.page(page_number)
+        serializer = NewsFeedSerializer(page, many= True)
+        # error: the id is returned instead of the value
+        # for i in serializer.data:
+        #     i["image"]=i.related.all()
+        data["num_pages"]=pages.num_pages
+        data["articles"]= serializer.data
+        return Response(data)
+    
+class PostNewsFeedView(APIView):   
+    def post(self, request):
+        image = {}
+        image["image"]=request.data["image"]
+        image = ImageSerializer(data = image)
+        if image.is_valid():
+            image.save()
+        else:
+            return Response("image error")
+        request.data["image"]= [Image.objects.last().id]
+        serializer= NewsFeedSerializer(data= request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
