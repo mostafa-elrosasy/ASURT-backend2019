@@ -10,7 +10,7 @@ class ImageSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class SponsorSerializer (serializers.ModelSerializer):
-    #image = ImageSerializer(read_only=True)
+    image = ImageSerializer(read_only=True)
     class Meta:
         model = Sponsor
         fields = '__all__'

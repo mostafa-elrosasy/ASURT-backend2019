@@ -91,6 +91,36 @@ class NewsFeedView(APIView):
         data["num_pages"]=pages.num_pages
         data["articles"]= serializer.data
         return Response(data)
+
+class EditNewsFeedView(APIView):
+    def put(self,request, id):
+        image = {}
+        news = NewsFeed.objects.filter(id = id).first()
+        image["image"]=request.data["image"]
+        if(image["image"]!=""):
+            image = ImageSerializer(data = image)
+            if image.is_valid():
+                image.save()
+                request.data["image"]= [Image.objects.last().id]
+                print(request.data["image"])
+            else:
+                return Response("image error")
+        else:
+            request.data["image"]= [news.image.first().id]
+        serializer= NewsFeedSerializer(news, data= request.data)
+        if serializer.is_valid():
+            serializer.validated_data["image"]= request.data["image"]
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self,request, id):
+        try:
+            news = NewsFeed.objects.filter(id = id).delete()
+            return Response("Deleted successfully", status=status.HTTP_200_OK)
+        except:
+            return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 class PostNewsFeedView(APIView):   
     def post(self, request):
@@ -101,9 +131,9 @@ class PostNewsFeedView(APIView):
             image.save()
         else:
             return Response("image error")
-        request.data["image"]= [Image.objects.last().id]
         serializer= NewsFeedSerializer(data= request.data)
         if serializer.is_valid():
+            serializer.validated_data["image"]= [Image.objects.last().id]
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:

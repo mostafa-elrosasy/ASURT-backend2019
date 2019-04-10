@@ -10,6 +10,7 @@ urlpatterns = [
     path('teams/',views.TeamView.as_view()),
     path('teams/(?P<pk>[0-9]+)/$',views.TeamEditView.as_view()),
     path('news-feed/<int:page_number>/',views.NewsFeedView.as_view()),
+    path('edit-news-feed/<int:id>/',views.EditNewsFeedView.as_view()),
     path('news-feed/',views.PostNewsFeedView.as_view()),
     path('faq/',views.FAQView.as_view()),
 
