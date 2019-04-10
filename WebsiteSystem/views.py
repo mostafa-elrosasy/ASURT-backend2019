@@ -48,10 +48,25 @@ class Events (APIView):
             return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def post(self, request):
+        #to be able to send images , we must first check if image is valid , then save that image , and we will then obtain it from the
+        #image table
+        image = {}
+        image["image"]=request.data["image"]
+        image = ImageSerializer(data = image)
+        if image.is_valid():
+            image.save()
+        else:
+            return Response("image error")
         serializer = EventSerializer(data=request.data)
         if serializer.is_valid():
-            event = Event.objects.create
+            serializer.validated_data["image"]= [Image.objects.last().id]
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def put(self, request):
+        pass
     #Put Method to edit existing event
 
     #Delete Method to delete event

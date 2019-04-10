@@ -16,7 +16,7 @@ class SponsorSerializer (serializers.ModelSerializer):
         fields = '__all__'
 
 class EventSerializer (serializers.ModelSerializer):
-    image = Base64FileField(max_length=None)
+    image = ImageSerializer(read_only=True, many=True)
     class Meta:
         model = Event
         fields = '__all__'
