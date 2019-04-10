@@ -1,6 +1,6 @@
 from django.shortcuts import render
-from .models import Sponsor, Image, Team , Event, NewsFeed
-from .serializers import SponsorSerializer, EventSerializer, NewsFeedSerializer, ImageSerializer
+from .models import Sponsor, Image, Team , Event, NewsFeed, FAQ
+from .serializers import SponsorSerializer, EventSerializer, NewsFeedSerializer, ImageSerializer, FAQSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -108,3 +108,17 @@ class PostNewsFeedView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class FAQView(APIView):
+    def get(self,request):
+        Faqs=FAQ.objects.all()
+        serializer = FAQSerializer(Faqs, many= True)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    def post(self,request):
+        serializer = FAQSerializer(data=request.data)
+        if (serializer.is_valid()):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
