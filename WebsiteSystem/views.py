@@ -177,16 +177,6 @@ class ActiveEvents (APIView):
         except Exception:
             return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-<<<<<<< HEAD
-
-class Ach (APIView):
-    def get (self, request):
-        achs=Achievement.objects.all()
-        serializer= AchievementSerializer(achs, many=True)
-        return Response(serializer.data)
-
-=======
->>>>>>> 8c7b7e112e9afabd244fb9046613358181e4b047
 class TeamView (APIView):
     def get (self,request):
         teams= Team.objects.all()
