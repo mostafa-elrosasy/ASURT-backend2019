@@ -13,9 +13,11 @@ urlpatterns = [
     path('edit-news-feed/<int:id>/',views.EditNewsFeedView.as_view()),
     path('news-feed/',views.PostNewsFeedView.as_view()),
     path('faq/',views.FAQView.as_view()),
+    path('highlight/all/',views.AllHighlights.as_view()),
+    path('highlight/',views.Highlights.as_view()),
+    path('highlight/active/',views.ActiveHighlights.as_view()),
     path('events/', views.Events.as_view()),
-
-    path('events/all/', views.Events.as_view()),
+    path('events/all/', views.AllEvents.as_view()),
     path('events/active/', views.ActiveEvents.as_view())
 
 
