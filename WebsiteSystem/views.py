@@ -38,6 +38,8 @@ class SponsorDelView (APIView): #error in url
         sponsors.delete()
         return Response(status= status.HTTP_204_NO_CONTENT)
 
+
+
 class AllHighlights (APIView):
     #Function to view all highlights using URL : /api/highlight/all/
     def get(self, request):
@@ -47,7 +49,6 @@ class AllHighlights (APIView):
             return Response(serializer.data)
         except Exception:
             return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 class Highlights (APIView):
     #Function to add a new highlight using URL : /api/highlight/
