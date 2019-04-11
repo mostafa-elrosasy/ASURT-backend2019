@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from RT_Website_19.fields import Base64FileField
-from .models import Sponsor, Event, NewsFeed, Image, FAQ , Highlight
+from .models import Sponsor, Event, NewsFeed, Image, FAQ , Highlight, Team
 
 class ImageSerializer(serializers.ModelSerializer):
     image = Base64FileField(max_length=None)
@@ -41,3 +41,8 @@ class FAQSerializer (serializers.ModelSerializer):
         fields = '__all__'
 
 
+class TeamSerializer (serializers.ModelSerializer):
+    image = ImageSerializer(read_only=True, many=True)
+    class Meta:
+        model= Team
+        fields= '__all__'

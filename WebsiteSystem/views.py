@@ -10,30 +10,31 @@ from django.core.paginator import Paginator
 
 class SponsorGetView (APIView):
     def get(self,request):
-        try:
             sponsors= Sponsor.objects.all()
             serializer= SponsorSerializer(sponsors, many= True)
             return Response(serializer.data)
-        except Exception :
-            return Response("An error has happened!", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class SponsorPostView (APIView):
-    def post(self, request): #still has to link image table
-        try:
-            serializer= SponsorSerializer(data= request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=True)
-        except Exception :
-            return Response("An error has happened!", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    def post(self, request): 
+        image = {}
+        image["image"]=request.data["image"]
+        image = ImageSerializer(data = image)
+        if image.is_valid():
+            image.save()
+        else:
+            return Response("image error")
+        serializer= SponsorSerializer(data= request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=True)
 
-class SponsorDelView (APIView): #error in url
+class SponsorDelView (APIView): 
     def delete(self, request,pk):
         try:
             sponsors = Sponsor.objects.get(id=pk)
             #serializer= SponsorSerializer(sponsors)
             #return Response(serializer.data)
-        except Sponsor.DoesNotExist:
+        except sponsors.DoesNotExist:
             raise Http404
         sponsors.delete()
         return Response(status= status.HTTP_204_NO_CONTENT)
@@ -186,7 +187,9 @@ class ActiveEvents (APIView):
 
 class TeamView (APIView):
     def get (self,request):
-        pass
+        teams= Team.objects.all()
+        serializer= TeamSerializer(teams, many= True)
+        return Response(serializer.data)
 
     def post (self, request):
         pass
@@ -195,8 +198,13 @@ class TeamEditView (APIView):
     def put (self, request, pk):
         pass
     
-    def delete (self, request, pk):
-        pass
+    def delete (self, request, str):
+        try:
+            teams = Team.objects.get(name=str)
+        except team.DoesNotExist:
+            raise Http404
+        teams.delete()
+        return Response(status= status.HTTP_204_NO_CONTENT)
 
 class NewsFeedView(APIView):
     def get(self, request, page_number):
