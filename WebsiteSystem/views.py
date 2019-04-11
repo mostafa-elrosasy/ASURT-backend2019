@@ -65,11 +65,36 @@ class Events (APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def put(self, request):
-        pass
-    #Put Method to edit existing event
+    def put(self,request):
+        image = {}
+        id = request.GET.get('id', '')
+        Events = Event.objects.filter(id = id).first()
+        image["image"]=request.data["image"]
+        if(image["image"]!=""):
+            image = ImageSerializer(data = image)
+            if image.is_valid():
+                image.save()
+                request.data["image"]= [Image.objects.last().id]
+                print(request.data["image"])
+            else:
+                return Response("image error")
+        else:
+            request.data["image"]= [Events.image.first().id]
+        serializer= EventSerializer(Events, data= request.data)
+        if serializer.is_valid():
+            serializer.validated_data["image"]= request.data["image"]
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    #Delete Method to delete event
+    def delete(self, request):
+        try:
+            id = request.GET.get('id', '')
+            Event.objects.filter(id = id).delete()
+            return Response("Deleted successfully", status=status.HTTP_200_OK)
+        except:
+            return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class ActiveEvents (APIView):
     def get(self, request):
