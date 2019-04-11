@@ -1,6 +1,6 @@
 from django.shortcuts import render
-from .models import Sponsor, Image, Team , Event, NewsFeed, FAQ , Highlight
-from .serializers import SponsorSerializer, EventSerializer, NewsFeedSerializer, ImageSerializer, FAQSerializer ,HighlightSerializer
+from .models import Sponsor, Image, Team , Event, NewsFeed, FAQ , Highlight, Achievement
+from .serializers import SponsorSerializer, EventSerializer, NewsFeedSerializer, ImageSerializer, FAQSerializer ,HighlightSerializer, TeamSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -25,8 +25,11 @@ class SponsorPostView (APIView):
             return Response("image error")
         serializer= SponsorSerializer(data= request.data)
         if serializer.is_valid():
+            serializer.validated_data["image"]= Image.objects.last().id
             serializer.save()
-            return Response(serializer.data, status=True)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response (serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class SponsorDelView (APIView): 
     def delete(self, request,pk):
@@ -192,16 +195,49 @@ class TeamView (APIView):
         return Response(serializer.data)
 
     def post (self, request):
-        pass
+        image = {}
+        image["image"]=request.data["image"]
+        image = ImageSerializer(data = image)
+        if image.is_valid():
+            image.save()
+        else:
+            return Response("image error")
+        serializer= TeamSerializer(data= request.data)
+        if serializer.is_valid():
+            serializer.validated_data["image"]= [Image.objects.last().id]
+            serializer.save()
+            return Response(serializer.data, status= status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class TeamEditView (APIView):
-    def put (self, request, pk):
-        pass
+    def put (self, request, name):
+        image = {}
+        id = request.GET.get('id', '')
+        teams = Team.objects.filter(name = name).first()
+        image["image"]=request.data["image"]
+        if(image["image"]!=""):
+            image = ImageSerializer(data = image)
+            if image.is_valid():
+                image.save()
+                request.data["image"]= [Image.objects.last().id]
+                print(request.data["image"])
+            else:
+                return Response("image error")
+        else:
+            request.data["image"]= [teams.image.first().id]
+        serializer= TeamSerializer(teams, data= request.data)
+        if serializer.is_valid():
+            serializer.validated_data["image"]= request.data["image"]
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    def delete (self, request, str):
+    def delete (self, request, name):
         try:
-            teams = Team.objects.get(name=str)
-        except team.DoesNotExist:
+            teams = Team.objects.get(name=name)
+        except teams.DoesNotExist:
             raise Http404
         teams.delete()
         return Response(status= status.HTTP_204_NO_CONTENT)
