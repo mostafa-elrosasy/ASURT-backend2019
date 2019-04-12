@@ -46,6 +46,13 @@ class AllHighlights (APIView):
             return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class Highlights (APIView):
+    def get(self, request,id):
+        try:
+            Highlights = Highlight.objects.filter(id = id)
+            serializer = HighlightSerializer(Highlights, many = True)
+            return Response(serializer.data)
+        except Exception:
+            return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     #Function to add a new highlight using URL : /api/highlight/
     def post(self, request):
         image = {}
