@@ -18,9 +18,9 @@ urlpatterns = [
     path('highlight/active/',views.ActiveHighlights.as_view()),
     path('events/', views.Events.as_view()),
     path('events/all/', views.AllEvents.as_view()),
-    path('events/active/', views.ActiveEvents.as_view())
-
-
+    path('events/active/', views.ActiveEvents.as_view()),
+    path('user/<int:id>/',views.UserView.as_view()),
+    path('groups/all/',views.GroupsView.as_view())
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

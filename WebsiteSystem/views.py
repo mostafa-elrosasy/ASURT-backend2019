@@ -1,12 +1,13 @@
 from django.shortcuts import render
 from .models import Sponsor, Image, Team , Event, NewsFeed, FAQ , Highlight, Achievement
-from .serializers import SponsorSerializer, EventSerializer, NewsFeedSerializer, ImageSerializer, FAQSerializer ,HighlightSerializer, TeamSerializer
+from .serializers import SponsorSerializer, EventSerializer, NewsFeedSerializer, ImageSerializer, FAQSerializer ,HighlightSerializer, TeamSerializer, GroupSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import Http404
 from django.core.paginator import Paginator
-
+from django.contrib.auth.models import Group,User
+from ProfileSystem.models import Profile
 
 class SponsorGetView (APIView):
     def get(self,request):
@@ -41,8 +42,6 @@ class SponsorDelView (APIView):
             raise Http404
         sponsors.delete()
         return Response(status= status.HTTP_204_NO_CONTENT)
-
-
 
 class AllHighlights (APIView):
     #Function to view all highlights using URL : /api/highlight/all/
@@ -186,8 +185,6 @@ class ActiveEvents (APIView):
         except Exception:
             return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-
 class TeamView (APIView):
     def get (self,request):
         teams= Team.objects.all()
@@ -312,4 +309,26 @@ class FAQView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UserView(APIView):
+    def get(self,request,id):
+        profile = Profile.objects.filter(id = id).first()
+        user_dictionary = {}
+        user_dictionary["name"] = Profile.name
+        user_dictionary["phone"] = Profile.mobile
+        user_dictionary["college_id"] = Profile.college_id
+        user = User.objects.filter(username = profile.user)
+        user_dictionary["email"] = User.email
+        user_dictionary["group"] = User.group
+        return Response(user_dictionary)
+    def put(self,request):
+        
+        return self.update(request)
+
     
+class GroupsView(APIView):
+    def get(self,request):
+        groups = Group.objects.all()
+        serializer = GroupSerializer(groups, many= True)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
