@@ -313,18 +313,22 @@ class FAQView(APIView):
 class UserView(APIView):
     def get(self,request,id):
         profile = Profile.objects.filter(id = id).first()
+        user = User.objects.filter(username = profile.user).first()
         user_dictionary = {}
         user_dictionary["name"] = Profile.name
         user_dictionary["phone"] = Profile.mobile
         user_dictionary["college_id"] = Profile.college_id
         user = User.objects.filter(username = profile.user)
         user_dictionary["email"] = User.email
-        user_dictionary["group"] = User.group
+        user_dictionary["group"] = user.groups.all().first().name
         return Response(user_dictionary)
-    def put(self,request):
-        
+    def put(self,request,id):
+        user = User.objects.get(pk = id)
+        updated_group = Group.objects.get(name = request.data['group'])
+        user_groups = User.groups.through.objects.get(user=user)
+        user_groups.group = updated_group
+        user_groups.save()
         return self.update(request)
-
     
 class GroupsView(APIView):
     def get(self,request):
