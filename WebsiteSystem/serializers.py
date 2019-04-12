@@ -10,13 +10,13 @@ class ImageSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class AchievementSerializer (serializers.ModelSerializer):
-    Image = ImageSerializer(read_only=True, many=True)
+    image = Base64FileField(max_length=None)
     class Meta:
         model= Achievement
         fields = '__all__'
 
 class SponsorSerializer (serializers.ModelSerializer):
-    image = ImageSerializer(read_only=True)
+    image = Base64FileField(max_length=None)
     class Meta:
         model = Sponsor
         fields = '__all__'
@@ -48,8 +48,8 @@ class FAQSerializer (serializers.ModelSerializer):
 
 
 class TeamSerializer (serializers.ModelSerializer):
+    achievement= AchievementSerializer(read_only= True, many=True)
     image = ImageSerializer(read_only=True, many=True)
-    #achievement= AchievementSerializer(read_only= True, many=True)
     class Meta:
         model= Team
         fields= '__all__'
