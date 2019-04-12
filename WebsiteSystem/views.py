@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .models import Sponsor, Image, Team , Event, NewsFeed, FAQ , Highlight, Achievement
-from .serializers import SponsorSerializer, EventSerializer, NewsFeedSerializer, ImageSerializer, FAQSerializer ,HighlightSerializer, TeamSerializer
+from .serializers import SponsorSerializer, EventSerializer, NewsFeedSerializer, ImageSerializer, FAQSerializer ,HighlightSerializer, TeamSerializer, GroupSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -340,3 +340,30 @@ class AllUsers(APIView):
         # response["users"]=user_list
         # serializer = UserSerializer(user_list, many = True)
         return Response(user_list)
+
+class UserView(APIView):
+    def get(self,request,id):
+        profile = Profile.objects.filter(id = id).first()
+        user = User.objects.filter(username = profile.user).first()
+        user_dictionary = {}
+        user_dictionary["name"] = Profile.name
+        user_dictionary["phone"] = Profile.mobile
+        user_dictionary["college_id"] = Profile.college_id
+        user = User.objects.filter(username = profile.user)
+        user_dictionary["email"] = User.email
+        user_dictionary["group"] = user.groups.all().first().name
+        return Response(user_dictionary)
+    def put(self,request,id):
+        user = User.objects.get(pk = id)
+        updated_group = Group.objects.get(name = request.data['group'])
+        user_groups = User.groups.through.objects.get(user=user)
+        user_groups.group = updated_group
+        user_groups.save()
+        return self.update(request)
+    
+class GroupsView(APIView):
+    def get(self,request):
+        groups = Group.objects.all()
+        serializer = GroupSerializer(groups, many= True)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
