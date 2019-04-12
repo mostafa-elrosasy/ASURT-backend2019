@@ -27,6 +27,7 @@ class NewsFeed(models.Model):
     vedio = models.URLField()
     image = models.ManyToManyField(Image)
 
+
 class Team(models.Model):
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=500)
