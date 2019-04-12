@@ -24,7 +24,18 @@ class NewsFeed(models.Model):
     date = models.DateField()
     status= models.BooleanField()
     article_type = models.CharField(max_length=100)
+<<<<<<< HEAD
     video = models.URLField(default="")
+=======
+    vedio = models.URLField()
+    image = models.ManyToManyField(Image)
+
+
+class Team(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.CharField(max_length=500)
+    team_type= models.CharField(max_length=100)
+>>>>>>> 8c7b7e112e9afabd244fb9046613358181e4b047
     image = models.ManyToManyField(Image)
 
 class Achievement(models.Model):

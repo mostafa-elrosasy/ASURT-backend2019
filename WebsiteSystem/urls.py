@@ -19,9 +19,16 @@ urlpatterns = [
     path('events/', views.Events.as_view()),
     path('events/all/', views.AllEvents.as_view()),
     path('events/active/', views.ActiveEvents.as_view()),
+<<<<<<< HEAD
     path('ach/', views.Ach.as_view())
+=======
+    path('users/all/', views.AllUsers.as_view()),
+>>>>>>> 8c7b7e112e9afabd244fb9046613358181e4b047
 
 
+
+    path('user/<int:id>/',views.UserView.as_view()),
+    path('groups/all/',views.GroupsView.as_view())
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

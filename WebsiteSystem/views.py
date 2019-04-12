@@ -1,11 +1,14 @@
 from django.shortcuts import render
 from .models import Sponsor, Image, Team , Event, NewsFeed, FAQ , Highlight, Achievement
-from .serializers import SponsorSerializer, EventSerializer, NewsFeedSerializer, ImageSerializer, FAQSerializer ,HighlightSerializer, TeamSerializer, AchievementSerializer
+from .serializers import SponsorSerializer, EventSerializer, NewsFeedSerializer, ImageSerializer, FAQSerializer ,HighlightSerializer, TeamSerializer, GroupSerializer, AchievementSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import Http404
 from django.core.paginator import Paginator
+from django.contrib.auth.models import Group, User
+from ProfileSystem.models import Profile
+
 
 
 class SponsorGetView (APIView):
@@ -31,8 +34,6 @@ class SponsorDelView (APIView):
             raise Http404
         sponsors.delete()
         return Response(status= status.HTTP_204_NO_CONTENT)
-
-
 
 class AllHighlights (APIView):
     #Function to view all highlights using URL : /api/highlight/all/
@@ -176,6 +177,7 @@ class ActiveEvents (APIView):
         except Exception:
             return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+<<<<<<< HEAD
 
 class Ach (APIView):
     def get (self, request):
@@ -183,6 +185,8 @@ class Ach (APIView):
         serializer= AchievementSerializer(achs, many=True)
         return Response(serializer.data)
 
+=======
+>>>>>>> 8c7b7e112e9afabd244fb9046613358181e4b047
 class TeamView (APIView):
     def get (self,request):
         teams= Team.objects.all()
@@ -334,3 +338,58 @@ class FAQView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+    def delete(self,request):
+        try:
+            id = request.GET.get('id', '')
+            if FAQ.objects.filter(id = id) is not None:
+                FAQ.objects.filter(id = id).delete()
+                return Response("Deleted successfully", status=status.HTTP_200_OK)
+        except:
+            return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class AllUsers(APIView):
+    def get(self,requset):
+
+        profiles = Profile.objects.all()
+        user_list = []
+        user_dictionary = {} #key + value
+
+        for i in profiles:
+            puser= User.objects.filter(username=i.user).first()
+            user_dictionary ["id"] = puser.id
+            user_dictionary ["email"] = puser.email
+            user_dictionary ["name"] = i.name
+            user_dictionary ["phone"] = i.mobile
+            user_dictionary ["college_id"] = i.college_id
+            user_dictionary ["group"] = puser.groups.all().first().name
+            user_list.append(user_dictionary)
+        # response["users"]=user_list
+        # serializer = UserSerializer(user_list, many = True)
+        return Response(user_list)
+
+class UserView(APIView):
+    def get(self,request,id):
+        profile = Profile.objects.filter(id = id).first()
+        user = User.objects.filter(username = profile.user).first()
+        user_dictionary = {}
+        user_dictionary["name"] = Profile.name
+        user_dictionary["phone"] = Profile.mobile
+        user_dictionary["college_id"] = Profile.college_id
+        user = User.objects.filter(username = profile.user)
+        user_dictionary["email"] = User.email
+        user_dictionary["group"] = user.groups.all().first().name
+        return Response(user_dictionary)
+    def put(self,request,id):
+        user = User.objects.get(pk = id)
+        updated_group = Group.objects.get(name = request.data['group'])
+        user_groups = User.groups.through.objects.get(user=user)
+        user_groups.group = updated_group
+        user_groups.save()
+        return self.update(request)
+    
+class GroupsView(APIView):
+    def get(self,request):
+        groups = Group.objects.all()
+        serializer = GroupSerializer(groups, many= True)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        

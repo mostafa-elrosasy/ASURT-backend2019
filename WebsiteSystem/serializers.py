@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from RT_Website_19.fields import Base64FileField
 from .models import Sponsor, Event, NewsFeed, Image, FAQ , Highlight, Team, Achievement
+from django.contrib.auth.models import Group
 
 class ImageSerializer(serializers.ModelSerializer):
     image = Base64FileField(max_length=None)
@@ -54,6 +55,8 @@ class TeamSerializer (serializers.ModelSerializer):
         model= Team
         fields= '__all__'
 
-
-
+class GroupSerializer (serializers.ModelSerializer):
+    class Meta:
+        model= Group
+        fields= '__all__'
 
