@@ -11,12 +11,21 @@ from ProfileSystem.models import Profile
 
 # 0: to remove image form team
 # 1: to remove achievement form team
+# 2: to remove image form event
+# 3: to remove image form highlight
+# 4: to remove image form newsfeed
 class RemoveFromView(APIView):
     def get(self, request, type,first_id, second_id):
         if(type == 0):
             Team.objects.get(id = first_id).image.remove(Image.objects.get(id = second_id))
         if(type == 1):
             Team.objects.get(id = first_id).achievement.remove(Achievement.objects.get(id = second_id))
+        if(type == 2):
+            Event.objects.get(id = first_id).image.remove(Image.objects.get(id = second_id))
+        if(type == 3):
+            Highlight.objects.get(id = first_id).image.remove(Image.objects.get(id = second_id))
+        if(type == 4):
+            NewsFeed.objects.get(id = first_id).image.remove(Image.objects.get(id = second_id))
         return Response("deleted", status=status.HTTP_201_CREATED)
 class SponsorGetView (APIView):
     def get(self,request):
@@ -79,21 +88,20 @@ class Highlights (APIView):
     #Function to edit an already existing highlight using URL : /api/highlight/
     def put(self ,request ,id):
         image = {}
-        Highlights = Highlight.objects.filter(id = id).first()
+        highlights = Highlight.objects.filter(id = id).first()
         image["image"]=request.data["image"]
-        if(image["image"]!=""):
-            image = ImageSerializer(data = image)
+        if(image["image"] != ""):
+            image=ImageSerializer(data= image)
             if image.is_valid():
                 image.save()
-                request.data["image"]= [Image.objects.last().id]
-                print(request.data["image"])
+                highlights.image.add(Image.objects.last().id)
             else:
-                return Response("image error")
+                return Response(image.errors)
         else:
-            request.data["image"]= [Highlights.image.first().id]
-        serializer= HighlightSerializer(Highlights, data= request.data)
+            request.data.pop('image',None)
+
+        serializer= HighlightSerializer(highlights, data= request.data)
         if serializer.is_valid():
-            serializer.validated_data["image"]= request.data["image"]
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
@@ -150,12 +158,11 @@ class Events (APIView):
         image = {}
         Events = Event.objects.filter(id = id).first()
         image["image"]=request.data["image"]
-        print("*****************************************")
         if(image["image"] != ""):
             image=ImageSerializer(data= image)
             if image.is_valid():
                 image.save()
-                teams.image.add(Image.objects.last().id)
+                Events.image.add(Image.objects.last().id)
             else:
                 return Response(image.errors)
         else:
@@ -279,19 +286,18 @@ class EditNewsFeedView(APIView):
         image = {}
         news = NewsFeed.objects.filter(id = id).first()
         image["image"]=request.data["image"]
-        if(image["image"]!=""):
-            image = ImageSerializer(data = image)
+        if(image["image"] != ""):
+            image=ImageSerializer(data= image)
             if image.is_valid():
                 image.save()
-                request.data["image"]= [Image.objects.last().id]
-                print(request.data["image"])
+                news.image.add(Image.objects.last().id)
             else:
-                return Response("image error")
+                return Response(image.errors)
         else:
-            request.data["image"]= [news.image.first().id]
+            request.data.pop('image',None)
+
         serializer= NewsFeedSerializer(news, data= request.data)
         if serializer.is_valid():
-            serializer.validated_data["image"]= request.data["image"]
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
