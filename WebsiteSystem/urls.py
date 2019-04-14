@@ -21,7 +21,8 @@ urlpatterns = [
     path('events/active/', views.ActiveEvents.as_view()),
     path('users/all/', views.AllUsers.as_view()),
     path('user/<int:id>/',views.UserView.as_view()),
-    path('groups/all/',views.GroupsView.as_view())
+    path('groups/all/',views.GroupsView.as_view()),
+    path('remove-from/<int:type>/<int:first_id>/<int:second_id>/',views.RemoveFromView.as_view())
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

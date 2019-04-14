@@ -9,8 +9,15 @@ from django.core.paginator import Paginator
 from django.contrib.auth.models import Group, User
 from ProfileSystem.models import Profile
 
-
-
+# 0: to remove image form team
+# 1: to remove achievement form team
+class RemoveFromView(APIView):
+    def get(self, request, type,first_id, second_id):
+        if(type == 0):
+            Team.objects.get(id = first_id).image.remove(Image.objects.get(id = second_id))
+        if(type == 1):
+            Team.objects.get(id = first_id).achievement.remove(Achievement.objects.get(id = second_id))
+        return Response("deleted", status=status.HTTP_201_CREATED)
 class SponsorGetView (APIView):
     def get(self,request):
             sponsors= Sponsor.objects.all()
@@ -139,19 +146,19 @@ class Events (APIView):
         id = request.GET.get('id', '')
         Events = Event.objects.filter(id = id).first()
         image["image"]=request.data["image"]
-        if(image["image"]!=""):
-            image = ImageSerializer(data = image)
+        print("*****************************************")
+        if(image["image"] != ""):
+            image=ImageSerializer(data= image)
             if image.is_valid():
                 image.save()
-                request.data["image"]= [Image.objects.last().id]
-                print(request.data["image"])
+                teams.image.add(Image.objects.last().id)
             else:
-                return Response("image error")
+                return Response(image.errors)
         else:
-            request.data["image"]= [Events.image.first().id]
+            request.data.pop('image',None)
+
         serializer= EventSerializer(Events, data= request.data)
         if serializer.is_valid():
-            serializer.validated_data["image"]= request.data["image"]
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
@@ -184,62 +191,59 @@ class TeamView (APIView):
         return Response(serializer.data)
 
     def post (self, request):
-        #achievement = {}  #name of the obj (JSON)-----DICTIONARY
-        achievement=request.data["achievement"]  #field inside the dic , put data inside it key=value
-        achievement = AchievementSerializer(data = achievement)
-        if achievement.is_valid():
-           achievement.save()
-        else:
-           return Response("achievement error ")
-        image = {}
-        image["image"]=request.data["image"]
-        image = ImageSerializer(data = image)
-        if image.is_valid():
-            image.save()
-        else:
-            return Response("image error")
         serializer= TeamSerializer(data= request.data)
         if serializer.is_valid():
-            serializer.validated_data["achievement"]=[Achievement.objects.last().id]
-            serializer.validated_data["image"]= [Image.objects.last().id]
             serializer.save()
-            return Response(serializer.data, status= status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        teams = Team.objects.last()
+        #achievement = {}  #name of the obj (JSON)-----DICTIONARY
+        achievement=request.data["achievement"]  #field inside the dic , put data inside it key=value
+        for single_achievement in achievement :
+            single_achievement = AchievementSerializer(data = single_achievement)
+            if single_achievement.is_valid():
+                single_achievement.save()
+                teams.achievement.add(Achievement.objects.last())
+            else:
+                return Response("achievement error ")
+        image = request.data["image"]
+        for single_image in image:
+            single_image = ImageSerializer(data = single_image)
+            if single_image.is_valid():
+                single_image.save()
+                teams.image.add(Image.objects.last())
+            else:
+                return Response("image error")
 
+        return Response(serializer.data, status= status.HTTP_201_CREATED)
 class TeamEditView (APIView):
     def put (self, request, pk):
-        
         teams = Team.objects.filter(id = pk).first()
         achievement= request.data["achievement"]
         if(achievement != ""):
             achievement=AchievementSerializer(data= achievement)
             if achievement.is_valid():
                 achievement.save()
-                request.data["achievement"]=[Achievement.objects.last().id]
-                print(request.data["achievement"])
+                teams.achievement.add(Achievement.objects.last().id)
             else:
-                return Response("achievement")
+                return Response("achievement error")
         else:
-            request.data["achievement"]=[teams.achievement.first().id]
+            request.data.pop('achievement',None)
 
         image = {}
         image["image"]=request.data["image"]
-        if(image["image"]!=""):
-            image = ImageSerializer(data = image)
+        if(image["image"] != ""):
+            image=ImageSerializer(data= image)
             if image.is_valid():
                 image.save()
-                request.data["image"]= [Image.objects.last().id]
-                print(request.data["image"])
+                teams.image.add(Image.objects.last().id)
             else:
-                return Response("image error")
+                return Response(image.errors)
         else:
-            request.data["image"]= [teams.image.first().id]
+            request.data.pop('image',None)
 
         serializer= TeamSerializer(teams, data= request.data)
         if serializer.is_valid():
-            serializer.validated_data["image"]= request.data["image"]
-            serializer.validated_data["achievement"]= request.data["achievement"]
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
@@ -248,10 +252,9 @@ class TeamEditView (APIView):
     def delete (self, request, pk):
         try:
             teams = Team.objects.get(id=pk)
-            print("teams.achievement")
-            print(teams.achievement)
-            for i in teams.achievement:
-                Achievement.objects.filter(id=i).delete()
+            print(teams.achievement.all())
+            for i in teams.achievement.all():
+                Achievement.objects.filter(id=i.id).delete()
         except teams.DoesNotExist:
             raise Http404
         teams.delete()
