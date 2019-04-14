@@ -53,6 +53,13 @@ class AllHighlights (APIView):
             return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class Highlights (APIView):
+    def get(self, request,id):
+        try:
+            Highlights = Highlight.objects.filter(id = id)
+            serializer = HighlightSerializer(Highlights, many = True)
+            return Response(serializer.data)
+        except Exception:
+            return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     #Function to add a new highlight using URL : /api/highlight/
     def post(self, request):
         image = {}
@@ -70,9 +77,8 @@ class Highlights (APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     #Function to edit an already existing highlight using URL : /api/highlight/
-    def put(self,request):
+    def put(self ,request ,id):
         image = {}
-        id = request.GET.get('id', '')
         Highlights = Highlight.objects.filter(id = id).first()
         image["image"]=request.data["image"]
         if(image["image"]!=""):
@@ -93,9 +99,8 @@ class Highlights (APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     #Function to delete a highlight using URL : /api/highlight/
-    def delete (self, request):
+    def delete (self, request, id):
         try:
-            id = request.GET.get('id', '')
             Highlight.objects.filter(id = id).delete()
             return Response("Deleted successfully", status=status.HTTP_200_OK)
         except:
@@ -141,9 +146,8 @@ class Events (APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     #Function to edit an already existing event using URL : /api/events/
-    def put(self,request):
+    def put(self ,request ,id):
         image = {}
-        id = request.GET.get('id', '')
         Events = Event.objects.filter(id = id).first()
         image["image"]=request.data["image"]
         print("*****************************************")
@@ -165,9 +169,8 @@ class Events (APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     #Function to delete an event using URL : /api/events/
-    def delete(self, request):
+    def delete(self , request ,id):
         try:
-            id = request.GET.get('id', '')
             Event.objects.filter(id = id).delete()
             return Response("Deleted successfully", status=status.HTTP_200_OK)
         except:
@@ -331,9 +334,8 @@ class FAQView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    def delete(self,request):
+    def delete(self,request,id):
         try:
-            id = request.GET.get('id', '')
             if FAQ.objects.filter(id = id) is not None:
                 FAQ.objects.filter(id = id).delete()
                 return Response("Deleted successfully", status=status.HTTP_200_OK)
