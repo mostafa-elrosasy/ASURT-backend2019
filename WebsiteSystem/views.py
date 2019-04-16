@@ -8,6 +8,7 @@ from django.http import Http404
 from django.core.paginator import Paginator
 from django.contrib.auth.models import Group, User
 from ProfileSystem.models import Profile
+import jwt
 
 # 0: to remove image form team
 # 1: to remove achievement form team

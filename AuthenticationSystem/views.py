@@ -18,13 +18,7 @@ from django.contrib.auth import authenticate
 import random,string
 from .models import Error
 import datetime
-
-
-def log_errors(ex,id):
-    now = datetime.datetime.now()
-    user=User.objects.filter(id=id).first()
-    error = Error(user = user , error = ex , time = now)
-    error.save()
+from ProfileSystem import log_errors
 
 
 def password_generator(length = 8, chars=string.ascii_letters + '@%_' ):
