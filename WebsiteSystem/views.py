@@ -409,6 +409,18 @@ class TeamEditView (APIView):
         else:
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
     
+
+    def get (self,request,pk):
+        try:
+            I =get_user_ID(request)
+            teams = Team.objects.filter(id = pk).first()
+            serializer= TeamSerializer(teams)
+            log(user=User.objects.filter(id=I).first(), action="Viewed the teams",)
+            return Response(serializer.data)
+        except Exception as ex:
+            log_errors(str(ex),I)
+            return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
     def delete (self, request, pk):
         if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
