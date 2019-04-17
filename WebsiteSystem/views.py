@@ -15,7 +15,7 @@ from AuthenticationSystem.models import Error
 from ProfileSystem.views import get_user_ID, log_errors
 from pinax.eventlog.models import log
 
-def TokeyVerify(request):
+def TokenVerify(request):
     try:
         auth = get_authorization_header(request).split()
         token=auth[1]
@@ -25,6 +25,19 @@ def TokeyVerify(request):
     except:
         return False
 
+def BackEndPermissionVerifier(request):
+    auth = get_authorization_header(request).split()
+    token=auth[1]
+    secret= SECRET_KEY # the secret key from the settings
+    payload = jwt.decode(token , secret)
+    if payload['position'] == 'IT -SeniorOfficer' :
+        return True
+    else :
+        return False
+
+        
+        
+
 # 0: to remove image form team
 # 1: to remove achievement form team
 # 2: to remove image form event
@@ -32,8 +45,8 @@ def TokeyVerify(request):
 # 4: to remove image form newsfeed
 class RemoveFromView(APIView):
     def get(self, request, type,first_id, second_id):
-        x = TokeyVerify(request)
-        if x == True :
+        
+        if TokenVerify(request) and BackEndPermissionVerifier(request) :
             if(type == 0):
                 Team.objects.get(id = first_id).image.remove(Image.objects.get(id = second_id))
             if(type == 1):
@@ -48,28 +61,21 @@ class RemoveFromView(APIView):
         else:
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
 
-
-
 class SponsorGetView (APIView):
     def get(self,request):
-        x = TokeyVerify(request)
-        if x == True :
-            try:
-                id =get_user_ID(request)
-                sponsors= Sponsor.objects.all()
-                serializer= SponsorSerializer(sponsors, many= True)
-                log(user=User.objects.filter(id=id).first(), action="Viewed all sponsors",)
-                return Response(serializer.data)
-            except Exception as ex:
-                log_errors(str(ex),id)
-                return Response("An error has happened!", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
-
+        try:
+            id =get_user_ID(request)
+            sponsors= Sponsor.objects.all()
+            serializer= SponsorSerializer(sponsors, many= True)
+            log(user=User.objects.filter(id=id).first(), action="Viewed all sponsors",)
+            return Response(serializer.data)
+        except Exception as ex:
+            log_errors(str(ex),id)
+            return Response("An error has happened!", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 class SponsorPostView (APIView):
     def post(self, request): 
-        x = TokeyVerify(request)
-        if x == True :
+        if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
                 id =get_user_ID(request)
                 serializer= SponsorSerializer(data= request.data)
@@ -88,8 +94,7 @@ class SponsorPostView (APIView):
 
 class SponsorDelView (APIView): 
     def delete(self, request,pk):
-        x = TokeyVerify(request)
-        if x == True :
+        if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
                 I =get_user_ID(request)
                 if Sponsor.objects.get(id=pk) is not None:
@@ -105,39 +110,31 @@ class SponsorDelView (APIView):
 class AllHighlights (APIView):
     #Function to view all highlights using URL : /api/highlight/all/
     def get(self, request):
-        x = TokeyVerify(request)
-        if x == True :
-            try:
-                id =get_user_ID(request)
-                Highlights = Highlight.objects.all()
-                serializer = HighlightSerializer(Highlights, many = True)
-                log(user=User.objects.filter(id=id).first(), action="Viewed all highlights",)
-                return Response(serializer.data)
-            except Exception as ex:
-                log_errors(str(ex),id)
-                return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            id =get_user_ID(request)
+            Highlights = Highlight.objects.all()
+            serializer = HighlightSerializer(Highlights, many = True)
+            log(user=User.objects.filter(id=id).first(), action="Viewed all highlights",)
+            return Response(serializer.data)
+        except Exception as ex:
+            log_errors(str(ex),id)
+            return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class Highlights (APIView):
     def get(self, request,id):
-        x = TokeyVerify(request)
-        if x == True :
-            try:
-                I =get_user_ID(request)
-                Highlights = Highlight.objects.filter(id = id)
-                serializer = HighlightSerializer(Highlights, many = True)
-                log(user=User.objects.filter(id=I).first(), action="Viewed a highlight",)
-                return Response(serializer.data)
-            except Exception as ex:
-                log_errors(str(ex),I)
-                return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            I =get_user_ID(request)
+            Highlights = Highlight.objects.filter(id = id)
+            serializer = HighlightSerializer(Highlights, many = True)
+            log(user=User.objects.filter(id=I).first(), action="Viewed a highlight",)
+            return Response(serializer.data)
+        except Exception as ex:
+            log_errors(str(ex),I)
+            return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     #Function to add a new highlight using URL : /api/highlight/
     def post(self, request):
-        x = TokeyVerify(request)
-        if x == True :
+        if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
                 id =get_user_ID(request)
                 image = {}
@@ -163,8 +160,7 @@ class Highlights (APIView):
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
     #Function to edit an already existing highlight using URL : /api/highlight/
     def put(self ,request ,id):
-        x = TokeyVerify(request)
-        if x == True :
+        if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
                 I =get_user_ID(request)
                 image = {}
@@ -195,8 +191,7 @@ class Highlights (APIView):
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
     #Function to delete a highlight using URL : /api/highlight/
     def delete (self, request, id):
-        x = TokeyVerify(request)
-        if x == True :
+        if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
                 I =get_user_ID(request) #get id
                 Highlight.objects.filter(id = id).delete()
@@ -211,52 +206,33 @@ class Highlights (APIView):
 class ActiveHighlights (APIView):
     #Function to get active Highlights using url : /api/highlight/active/
     def get(self, request):
-        x = TokeyVerify(request)
-        if x == True :
-            try:
-                id =get_user_ID(request)
-                Highlights = Highlight.objects.filter(active = "True")
-                serializer = HighlightSerializer(Highlights, many = True)
-                log(user=User.objects.filter(id=id).first(), action="Viewed active highlight",)
-                return Response(serializer.data)
-            except Exception as ex:
-                log_errors(str(ex),id)
-                return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            id =get_user_ID(request)
+            Highlights = Highlight.objects.filter(active = "True")
+            serializer = HighlightSerializer(Highlights, many = True)
+            log(user=User.objects.filter(id=id).first(), action="Viewed active highlight",)
+            return Response(serializer.data)
+        except Exception as ex:
+            log_errors(str(ex),id)
+            return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class AllEvents (APIView):
     #Function to view all events using URL : /api/events/all/
     def get(self, request):
-        x = TokeyVerify(request)
-        if x == True :
-            try:
-                id =get_user_ID(request)
-                Events = Event.objects.all()
-                serializer = EventSerializer(Events, many = True)
-                log(user=User.objects.filter(id=id).first(), action="Viewed all events",)
-                return Response(serializer.data)
-            except Exception as ex:
-                log_errors(str(ex),id)
-                return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
-
+        try:
+            id =get_user_ID(request)
+            Events = Event.objects.all()
+            serializer = EventSerializer(Events, many = True)
+            log(user=User.objects.filter(id=id).first(), action="Viewed all events",)
+            return Response(serializer.data)
+        except Exception as ex:
+            log_errors(str(ex),id)
+            return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class Events (APIView):
     #Function to add a new event using URL : /api/events/
     def post(self, request):
-        x = TokeyVerify(request)
-        if x == True :
-            try:
-                auth = get_authorization_header(request).split()
-                print("############")
-                token=auth[1]
-                print ("*********************")
-                secret= SECRET_KEY # the secret key from the settings
-                jwt.decode(token , secret)
-            except:
-                return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+        if TokenVerify(request) and BackEndPermissionVerifier(request) :
             #to be able to send images , we must first check if image is valid , then save that image , and we will then obtain it from the
             #image table
             try:
@@ -284,17 +260,7 @@ class Events (APIView):
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
     #Function to edit an already existing event using URL : /api/events/
     def put(self ,request ,id):
-        x = TokeyVerify(request)
-        if x == True :
-            try:
-                auth = get_authorization_header(request).split()
-                print("############")
-                token=auth[1]
-                print ("*********************")
-                secret= SECRET_KEY # the secret key from the settings
-                jwt.decode(token , secret)
-            except:
-                return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+        if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
                 I =get_user_ID(request)
                 image = {}
@@ -326,17 +292,7 @@ class Events (APIView):
 
     #Function to delete an event using URL : /api/events/
     def delete(self , request ,id):
-        x = TokeyVerify(request)
-        if x == True :
-            try:
-                auth = get_authorization_header(request).split()
-                print("############")
-                token=auth[1]
-                print ("*********************")
-                secret= SECRET_KEY # the secret key from the settings
-                jwt.decode(token , secret)
-            except:
-                return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+        if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
                 I =get_user_ID(request)
                 Event.objects.filter(id = id).delete()
@@ -352,82 +308,67 @@ class ActiveEvents (APIView):
     #Function to get active events using url : /api/events/active/
 
     def get(self, request):
-        x = TokeyVerify(request)
-        if x == True :
-            try:
-                id =get_user_ID(request)
-                Events = Event.objects.filter(status = "True")
-                serializer = EventSerializer(Events, many = True)
-                log(user=User.objects.filter(id=id).first(), action="Viewed active events",)
-                return Response(serializer.data)
-            except Exception as ex:
-                log_errors(str(ex),id)
-                return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            id =get_user_ID(request)
+            Events = Event.objects.filter(status = "True")
+            serializer = EventSerializer(Events, many = True)
+            log(user=User.objects.filter(id=id).first(), action="Viewed active events",)
+            return Response(serializer.data)
+        except Exception as ex:
+            log_errors(str(ex),id)
+            return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class TeamView (APIView):
     def get (self,request):
-        x = TokeyVerify(request)
-        if x == True :
-            try:
-                id =get_user_ID(request)
-                teams= Team.objects.all()
-                serializer= TeamSerializer(teams, many= True)
-                log(user=User.objects.filter(id=id).first(), action="Viewed the teams",)
-                return Response(serializer.data)
-            except Exception as ex:
-                log_errors(str(ex),id)
-                return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
-
-    def post (self, request):
-        try:
-            auth = get_authorization_header(request).split()
-            print("############")
-            token=auth[1]
-            print ("*********************")
-            secret= SECRET_KEY # the secret key from the settings
-            jwt.decode(token , secret)
-        except:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
         try:
             id =get_user_ID(request)
-            serializer= TeamSerializer(data= request.data)
-            if serializer.is_valid():
-                serializer.save()
-            else:
-                log(user=User.objects.filter(id=id).first(),action="Tried to add a team",)
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            teams = Team.objects.last()
-            #achievement = {}  #name of the obj (JSON)-----DICTIONARY
-            achievement=request.data["achievement"]  #field inside the dic , put data inside it key=value
-            for single_achievement in achievement :
-                single_achievement = AchievementSerializer(data = single_achievement)
-                if single_achievement.is_valid():
-                    single_achievement.save()
-                    teams.achievement.add(Achievement.objects.last())
-                else:
-                    return Response("achievement error ")
-            image = request.data["image"]
-            for single_image in image:
-                single_image = ImageSerializer(data = single_image)
-                if single_image.is_valid():
-                    single_image.save()
-                    teams.image.add(Image.objects.last())
-                else:
-                    return Response("image error")
-            log(user=User.objects.filter(id=id).first(),action="Added a team",)
-            return Response(serializer.data, status= status.HTTP_201_CREATED)
+            teams= Team.objects.all()
+            serializer= TeamSerializer(teams, many= True)
+            log(user=User.objects.filter(id=id).first(), action="Viewed the teams",)
+            return Response(serializer.data)
         except Exception as ex:
-                log_errors(str(ex),id)
-                return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            log_errors(str(ex),id)
+            return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post (self, request):
+        if TokenVerify(request) and BackEndPermissionVerifier(request) :
+            try:
+                id =get_user_ID(request)
+                serializer= TeamSerializer(data= request.data)
+                if serializer.is_valid():
+                    serializer.save()
+                else:
+                    log(user=User.objects.filter(id=id).first(),action="Tried to add a team",)
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                teams = Team.objects.last()
+                #achievement = {}  #name of the obj (JSON)-----DICTIONARY
+                achievement=request.data["achievement"]  #field inside the dic , put data inside it key=value
+                for single_achievement in achievement :
+                    single_achievement = AchievementSerializer(data = single_achievement)
+                    if single_achievement.is_valid():
+                        single_achievement.save()
+                        teams.achievement.add(Achievement.objects.last())
+                    else:
+                        return Response("achievement error ")
+                image = request.data["image"]
+                for single_image in image:
+                    single_image = ImageSerializer(data = single_image)
+                    if single_image.is_valid():
+                        single_image.save()
+                        teams.image.add(Image.objects.last())
+                    else:
+                        return Response("image error")
+                log(user=User.objects.filter(id=id).first(),action="Added a team",)
+                return Response(serializer.data, status= status.HTTP_201_CREATED)
+            except Exception as ex:
+                    log_errors(str(ex),id)
+                    return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else :
+            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
 
 class TeamEditView (APIView):
     def put (self, request, pk):
-        x = TokeyVerify(request)
-        if x == True :
+        if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
                 I =get_user_ID(request)
                 teams = Team.objects.filter(id = pk).first()
@@ -469,8 +410,7 @@ class TeamEditView (APIView):
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
     
     def delete (self, request, pk):
-        x = TokeyVerify(request)
-        if x == True :
+        if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
                 I =get_user_ID(request)
                 teams = Team.objects.get(id=pk)
@@ -489,29 +429,24 @@ class TeamEditView (APIView):
 
 class NewsFeedView(APIView):
     def get(self, request, page_number):
-        x = TokeyVerify(request)
-        if x == True :
-            try:
-                id =get_user_ID(request)
-                data={}
-                news = NewsFeed.objects.all()
-                pages = Paginator(news, 2)
-                page = pages.page(page_number)
-                serializer = NewsFeedSerializer(page, many= True)
-                data["num_pages"]=pages.num_pages
-                data["articles"]= serializer.data
-                log(user=User.objects.filter(id=id).first(), action="Viewed the newsfeed",)
-                return Response(data)
-            except Exception as ex:
-                log_errors(str(ex),id)
-                return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            id =get_user_ID(request)
+            data={}
+            news = NewsFeed.objects.all()
+            pages = Paginator(news, 2)
+            page = pages.page(page_number)
+            serializer = NewsFeedSerializer(page, many= True)
+            data["num_pages"]=pages.num_pages
+            data["articles"]= serializer.data
+            log(user=User.objects.filter(id=id).first(), action="Viewed the newsfeed",)
+            return Response(data)
+        except Exception as ex:
+            log_errors(str(ex),id)
+            return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class EditNewsFeedView(APIView):
     def put(self,request, id):
-        x = TokeyVerify(request)
-        if x == True :
+        if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
                 I =get_user_ID(request)
                 image = {}
@@ -542,7 +477,7 @@ class EditNewsFeedView(APIView):
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self,request, id):
-        x = TokeyVerify(request)
+        x = TokenVerify(request)
         if x == True :
             try:
                 I =get_user_ID(request)
@@ -557,8 +492,7 @@ class EditNewsFeedView(APIView):
     
 class PostNewsFeedView(APIView):   
     def post(self, request):
-        x = TokeyVerify(request)
-        if x == True :
+        if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
                 id =get_user_ID(request)
                 image = {}
@@ -585,22 +519,18 @@ class PostNewsFeedView(APIView):
 
 class FAQView(APIView):
     def get(self,request):
-        x = TokeyVerify(request)
-        if x == True :
-            try:
-                id =get_user_ID(request)
-                Faqs=FAQ.objects.all()
-                serializer = FAQSerializer(Faqs, many= True)
-                log(user=User.objects.filter(id=id).first(), action="Viewed the FAQ",)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            except Exception as ex:
-                log_errors(str(ex),id)
-                return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            id =get_user_ID(request)
+            Faqs=FAQ.objects.all()
+            serializer = FAQSerializer(Faqs, many= True)
+            log(user=User.objects.filter(id=id).first(), action="Viewed the FAQ",)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as ex:
+            log_errors(str(ex),id)
+            return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     def post(self,request):
-        x = TokeyVerify(request)
-        if x == True :
+        if TokenVerify(request) :
             try:
                 id =get_user_ID(request)
                 serializer = FAQSerializer(data=request.data)
@@ -614,12 +544,11 @@ class FAQView(APIView):
             except Exception as ex:
                 log_errors(str(ex),id)
                 return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
+        else :
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
-    
+            
     def delete(self,request,id):
-        x = TokeyVerify(request)
-        if x == True :
+        if TokenVerify(request) :
             try:
                 I =get_user_ID(request)
                 if FAQ.objects.filter(id = id) is not None:
@@ -629,31 +558,25 @@ class FAQView(APIView):
             except Exception as ex:
                 log_errors(str(ex),I)
                 return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
         else:
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
 
 class AllUsers(APIView):
-    def get(self,requset):
-        x = TokeyVerify(request)
-        if x == True :
+    def get(self,request):
+        if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
                 I =get_user_ID(request)
                 profiles = Profile.objects.all()
                 user_list = []
                 user_dictionary = {} #key + value
-
                 for i in profiles:
-                    puser= User.objects.filter(username=i.user).first()
-                    user_dictionary ["id"] = puser.id
-                    user_dictionary ["email"] = puser.email
+                    user_dictionary ["id"] = i.user.id
+                    user_dictionary ["email"] = i.user.email
                     user_dictionary ["name"] = i.name
                     user_dictionary ["phone"] = i.mobile
                     user_dictionary ["college_id"] = i.college_id
-                    user_dictionary ["group"] = puser.groups.all().first().name
+                    user_dictionary ["group"] = i.user.groups.all().first().name
                     user_list.append(user_dictionary)
-                # response["users"]=user_list
-                # serializer = UserSerializer(user_list, many = True)
                 log(user=User.objects.filter(id=I).first(), action="Viewed all users",)
                 return Response(user_list)
             except Exception as ex:
@@ -663,22 +586,19 @@ class AllUsers(APIView):
         else:
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
 
-
 class UserView(APIView):
     def get(self,request,id):
-        x = TokeyVerify(request)
-        if x == True :
+        if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
                 I =get_user_ID(request)
-                profile = Profile.objects.filter(id = id).first()
-                user = User.objects.filter(username = profile.user).first()
+                # TargetUser = User.objects.filter(id = id).first()
+                profile = Profile.objects.filter(user = id).first()
                 user_dictionary = {}
-                user_dictionary["name"] = Profile.name
-                user_dictionary["phone"] = Profile.mobile
-                user_dictionary["college_id"] = Profile.college_id
-                user = User.objects.filter(username = profile.user)
-                user_dictionary["email"] = User.email
-                user_dictionary["group"] = user.groups.all().first().name
+                user_dictionary["name"] = profile.name
+                user_dictionary["phone"] = profile.mobile
+                user_dictionary["college_id"] = profile.college_id
+                user_dictionary["email"] = profile.user.email
+                user_dictionary["group"] = profile.user.groups.all().first().name
                 log(user=User.objects.filter(id=I).first(), action="Viewed one user",)
                 return Response(user_dictionary)
             except Exception as ex:
@@ -686,18 +606,17 @@ class UserView(APIView):
                 return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+    
     def put(self,request,id):
-        x = TokeyVerify(request)
-        if x == True :
+        if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
-                I =get_user_ID(request)
+                I = get_user_ID(request)
                 user = User.objects.get(pk = id)
                 updated_group = Group.objects.get(name = request.data['group'])
-                user_groups = User.groups.through.objects.get(user=user)
-                user_groups.group = updated_group
-                user_groups.save()
+                updated_group.user_set.add(user)
+                # user_groups.save()
                 log(user=User.objects.filter(id=I).first(), action="Updated a user",)
-                return self.update(request)
+                return Response("User Group Permissions SUccessfully Updated" , status=status.HTTP_202_ACCEPTED)
             except Exception as ex:
                 log_errors(str(ex),I)
                 return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -706,8 +625,7 @@ class UserView(APIView):
     
 class GroupsView(APIView):
     def get(self,request):
-        x = TokeyVerify(request)
-        if x == True :
+        if TokenVerify(request):
             try:
                 id =get_user_ID(request)
                 groups = Group.objects.all()
@@ -719,4 +637,3 @@ class GroupsView(APIView):
                 return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
-        
