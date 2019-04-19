@@ -67,18 +67,20 @@ class RemoveFromView(APIView):
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
 
 class SponsorGetView (APIView):
+    #View all sponsors
     def get(self,request):
         try:
-            id =get_user_ID(request)
+            #id =get_user_ID(request)
             sponsors= Sponsor.objects.all()
             serializer= SponsorSerializer(sponsors, many= True)
-            log(user=User.objects.filter(id=id).first(), action="Viewed all sponsors",)
+            log(user=User.objects.filter(id=1).first(), action="Viewed all sponsors",)
             return Response(serializer.data)
         except Exception as ex:
-            log_errors(str(ex),id)
+            log_errors(str(ex),1)
             return Response("An error has happened!", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 class SponsorPostView (APIView):
+    #Add a new sponsor
     def post(self, request): 
         if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
@@ -97,7 +99,8 @@ class SponsorPostView (APIView):
         else:
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
 
-class SponsorDelView (APIView): 
+class SponsorDelView (APIView):
+    #Delete a sponsor 
     def delete(self, request,pk):
         if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
@@ -116,25 +119,25 @@ class AllHighlights (APIView):
     #Function to view all highlights using URL : /api/highlight/all/
     def get(self, request):
         try:
-            id =get_user_ID(request)
+            #id =get_user_ID(request)
             Highlights = Highlight.objects.all()
             serializer = HighlightSerializer(Highlights, many = True)
-            log(user=User.objects.filter(id=id).first(), action="Viewed all highlights",)
+            log(user=User.objects.filter(id=1).first(), action="Viewed all highlights",)
             return Response(serializer.data)
         except Exception as ex:
-            log_errors(str(ex),id)
+            log_errors(str(ex),1)
             return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class Highlights (APIView):
     def get(self, request,id):
         try:
-            I =get_user_ID(request)
+            #I =get_user_ID(request)
             Highlights = Highlight.objects.filter(id = id)
             serializer = HighlightSerializer(Highlights, many = True)
-            log(user=User.objects.filter(id=I).first(), action="Viewed a highlight",)
+            log(user=User.objects.filter(id=1).first(), action="Viewed a highlight",)
             return Response(serializer.data)
         except Exception as ex:
-            log_errors(str(ex),I)
+            log_errors(str(ex),1)
             return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     #Function to add a new highlight using URL : /api/highlight/
@@ -212,32 +215,33 @@ class ActiveHighlights (APIView):
     #Function to get active Highlights using url : /api/highlight/active/
     def get(self, request):
         try:
-            id =get_user_ID(request)
+            #id =get_user_ID(request)
             Highlights = Highlight.objects.filter(active = "True")
             serializer = HighlightSerializer(Highlights, many = True)
-            log(user=User.objects.filter(id=id).first(), action="Viewed active highlight",)
+            log(user=User.objects.filter(id=1).first(), action="Viewed active highlight",)
             return Response(serializer.data)
         except Exception as ex:
-            log_errors(str(ex),id)
+            log_errors(str(ex),1)
             return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class AllEvents (APIView):
     #Function to view all events using URL : /api/events/all/
     def get(self, request):
         try:
-            id =get_user_ID(request)
+            #id =get_user_ID(request)
             Events = Event.objects.all()
             serializer = EventSerializer(Events, many = True)
-            log(user=User.objects.filter(id=id).first(), action="Viewed all events",)
+            log(user=User.objects.filter(id=1).first(), action="Viewed all events",)
             return Response(serializer.data)
         except Exception as ex:
-            log_errors(str(ex),id)
+            log_errors(str(ex),1)
             return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class Events (APIView):
     def get(self, request, id):
         event = Event.objects.get(id= id)
         serializer = EventSerializer(event)
+        log(user=User.objects.filter(id=1).first(), action="Viewed an event",)
         return Response(serializer.data, status = status.HTTP_200_OK)
     #Function to add a new event using URL : /api/events/
     def post(self, request):
@@ -318,27 +322,30 @@ class ActiveEvents (APIView):
 
     def get(self, request):
         try:
-            id =get_user_ID(request)
+            #id =get_user_ID(request)
             Events = Event.objects.filter(status = "True")
             serializer = EventSerializer(Events, many = True)
-            log(user=User.objects.filter(id=id).first(), action="Viewed active events",)
+            log(user=User.objects.filter(id=1).first(), action="Viewed active events",)
             return Response(serializer.data)
         except Exception as ex:
-            log_errors(str(ex),id)
+            log_errors(str(ex),1)
             return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class TeamView (APIView):
+    #View all teams URL : /api/teams/
     def get (self,request):
         try:
-            id =get_user_ID(request)
+            #id =get_user_ID(request)
             teams= Team.objects.all()
             serializer= TeamSerializer(teams, many= True)
-            log(user=User.objects.filter(id=id).first(), action="Viewed the teams",)
+            log(user=User.objects.filter(id=1).first(), action="Viewed the teams",)
             return Response(serializer.data)
         except Exception as ex:
-            log_errors(str(ex),id)
+            log_errors(str(ex),1)
             return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+#Add a new Team URL : /api/teams/
     def post (self, request):
         if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
@@ -376,6 +383,7 @@ class TeamView (APIView):
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
 
 class TeamEditView (APIView):
+    #Edit a team URL : /api/teams/id
     def put (self, request, pk):
         if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
@@ -418,18 +426,22 @@ class TeamEditView (APIView):
         else:
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
     
-
+#View a team by id URL : /api/teams/id
     def get (self,request,pk):
         try:
-            I =get_user_ID(request)
-            teams = Team.objects.filter(id = pk).first()
-            serializer= TeamSerializer(teams)
-            log(user=User.objects.filter(id=I).first(), action="Viewed the teams",)
-            return Response(serializer.data)
+            #I =get_user_ID(request)
+            if Team.objects.filter(id = pk).first() is not None:
+                teams = Team.objects.filter(id = pk).first()
+                serializer= TeamSerializer(teams)
+                log(user=User.objects.filter(id=1).first(), action="Viewed the teams",)
+                return Response(serializer.data)
+            else:
+                return Response("Team doesn't exist", status=status.HTTP_400_BAD_REQUEST)
         except Exception as ex:
-            log_errors(str(ex),I)
+            log_errors(str(ex),1)
             return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
+#Delete a team by id URL : /api/teams/id
     def delete (self, request, pk):
         if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
@@ -451,7 +463,7 @@ class TeamEditView (APIView):
 class NewsFeedView(APIView):
     def get(self, request, page_number):
         try:
-            id =get_user_ID(request)
+            #id =get_user_ID(request)
             data={}
             news = NewsFeed.objects.all().order_by('-date')
             news.reverse()
@@ -460,17 +472,19 @@ class NewsFeedView(APIView):
             serializer = NewsFeedSerializer(page, many= True)
             data["num_pages"]=pages.num_pages
             data["articles"]= serializer.data
-            log(user=User.objects.filter(id=id).first(), action="Viewed the newsfeed",)
+            log(user=User.objects.filter(id=1).first(), action="Viewed the newsfeed",)
             return Response(data)
         except Exception as ex:
-            log_errors(str(ex),id)
+            log_errors(str(ex),1)
             return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class EditNewsFeedView(APIView):
     def get(sef, request, id):
         news = NewsFeed.objects.get(id= id)
         serializer = NewsFeedSerializer(news)
+        log(user=User.objects.filter(id=1).first(), action="Viewed a newsfeed",)
         return Response(serializer, status = status.HTTP_200_OK)
+
     def put(self,request, id):
         if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
@@ -546,13 +560,13 @@ class PostNewsFeedView(APIView):
 class FAQView(APIView):
     def get(self,request):
         try:
-            id =get_user_ID(request)
+            #id =get_user_ID(request)
             Faqs=FAQ.objects.all()
             serializer = FAQSerializer(Faqs, many= True)
-            log(user=User.objects.filter(id=id).first(), action="Viewed the FAQ",)
+            log(user=User.objects.filter(id=1).first(), action="Viewed the FAQ",)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception as ex:
-            log_errors(str(ex),id)
+            log_errors(str(ex),1)
             return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def post(self,request):
