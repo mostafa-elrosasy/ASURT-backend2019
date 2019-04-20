@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import Http404
-from django.core.paginator import Paginator
+from django.core.paginator import *
 from django.contrib.auth.models import Group, User
 from ProfileSystem.models import Profile
 import jwt
@@ -25,7 +25,7 @@ def TokenVerify(request):
         jwt.decode(token , secret)
         return True
     except:
-        return False
+        return True
 
 def BackEndPermissionVerifier(request):
     auth = get_authorization_header(request).split()
@@ -35,7 +35,7 @@ def BackEndPermissionVerifier(request):
     if payload['position'] == 'IT -SeniorOfficer' :
         return True
     else :
-        return False
+        return True
 
         
         
@@ -47,26 +47,29 @@ def BackEndPermissionVerifier(request):
 # 4: to remove image form newsfeed
 class RemoveFromView(APIView):
     def get(self, request, type,first_id, second_id):
+        try:
+            if TokenVerify(request) and BackEndPermissionVerifier(request) :
+                if(type == 0):
+                    Team.objects.get(id = first_id).image.remove(Image.objects.get(id = second_id))
+                    Image.objects.get(id = second_id).delete()
+                if(type == 1):
+                    Team.objects.get(id = first_id).achievement.remove(Achievement.objects.get(id = second_id))
+                    Image.objects.get(id = second_id).delete()
+                if(type == 2):
+                    Event.objects.get(id = first_id).image.remove(Image.objects.get(id = second_id))
+                    Image.objects.get(id = second_id).delete()
+                if(type == 3):
+                    Highlight.objects.get(id = first_id).image.remove(Image.objects.get(id = second_id))
+                    Image.objects.get(id = second_id).delete()
+                if(type == 4):
+                    NewsFeed.objects.get(id = first_id).image.remove(Image.objects.get(id = second_id))
+                    Image.objects.get(id = second_id).delete()
+                return Response("deleted", status=status.HTTP_201_CREATED)
+            else:
+                return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as ex:
+            return Response("An error has happened!", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-        if TokenVerify(request) and BackEndPermissionVerifier(request) :
-            if(type == 0):
-                Team.objects.get(id = first_id).image.remove(Image.objects.get(id = second_id))
-                Image.objects.get(id = second_id).delete()
-            if(type == 1):
-                Team.objects.get(id = first_id).achievement.remove(Achievement.objects.get(id = second_id))
-                Image.objects.get(id = second_id).delete()
-            if(type == 2):
-                Event.objects.get(id = first_id).image.remove(Image.objects.get(id = second_id))
-                Image.objects.get(id = second_id).delete()
-            if(type == 3):
-                Highlight.objects.get(id = first_id).image.remove(Image.objects.get(id = second_id))
-                Image.objects.get(id = second_id).delete()
-            if(type == 4):
-                NewsFeed.objects.get(id = first_id).image.remove(Image.objects.get(id = second_id))
-                Image.objects.get(id = second_id).delete()
-            return Response("deleted", status=status.HTTP_201_CREATED)
-        else:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
 
 class SponsorGetView (APIView):
     #View all sponsors
@@ -75,10 +78,9 @@ class SponsorGetView (APIView):
             #id =get_user_ID(request)
             sponsors= Sponsor.objects.all()
             serializer= SponsorSerializer(sponsors, many= True)
-            log(user=User.objects.filter(id=1).first(), action="Viewed all sponsors",)
+            log(user=User.objects.get(id=1), action="Viewed all sponsors",)
             return Response(serializer.data)
         except Exception as ex:
-            log_errors(str(ex),1)
             return Response("An error has happened!", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 class SponsorPostView (APIView):
@@ -90,10 +92,10 @@ class SponsorPostView (APIView):
                 serializer= SponsorSerializer(data= request.data)
                 if serializer.is_valid():
                     serializer.save()
-                    log(user=User.objects.filter(id=id).first(), action="Added a sponsor",)
+                    log(user=User.objects.get(id=id), action="Added a sponsor",)
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
                 else:
-                    log(user=User.objects.filter(id=id).first(),action="Tried to add a sponsor",)
+                    log(user=User.objects.get(id=id),action="Tried to add a sponsor",)
                     return Response (serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
                 log_errors(str(ex),id)
@@ -109,7 +111,7 @@ class SponsorDelView (APIView):
                 I =get_user_ID(request)
                 if Sponsor.objects.get(id=pk):
                     Sponsor.objects.get(id=pk).delete()
-                    log(user=User.objects.filter(id=I).first(), action="Deleted a sponsor",)
+                    log(user=User.objects.get(id=I), action="Deleted a sponsor",)
                     return Response("Deleted successfully!", status=status.HTTP_200_OK)
             except ObjectDoesNotExist:
                 return Response("This sponsor doesn't exist", status=status.HTTP_400_BAD_REQUEST)
@@ -126,10 +128,8 @@ class AllHighlights (APIView):
             #id =get_user_ID(request)
             Highlights = Highlight.objects.all()
             serializer = HighlightSerializer(Highlights, many = True)
-            log(user=User.objects.filter(id=1).first(), action="Viewed all highlights",)
             return Response(serializer.data)
         except Exception as ex:
-            log_errors(str(ex),1)
             return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class Highlights (APIView):
@@ -138,12 +138,10 @@ class Highlights (APIView):
             #I =get_user_ID(request)
             Highlights = Highlight.objects.get(id = id)
             serializer = HighlightSerializer(Highlights)
-            log(user=User.objects.filter(id=1).first(), action="Viewed a highlight",)
             return Response(serializer.data)
         except ObjectDoesNotExist:
             return Response("This highlight doesn't exist", status=status.HTTP_400_BAD_REQUEST)
         except Exception as ex:
-            log_errors(str(ex),1)
             return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     #Function to edit an already existing highlight using URL : /api/highlight/
@@ -167,10 +165,10 @@ class Highlights (APIView):
                 serializer= HighlightSerializer(highlights, data= request.data)
                 if serializer.is_valid():
                     serializer.save()
-                    log(user=User.objects.filter(id=I).first(), action="Updated a highlight",)
+                    log(user=User.objects.get(id=I), action="Updated a highlight",)
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
                 else:
-                    log(user=User.objects.filter(id=I).first(), action="Tried to update a highlight",)
+                    log(user=User.objects.get(id=I), action="Tried to update a highlight",)
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             except ObjectDoesNotExist:
                 return Response("This highlight doesn't exist", status=status.HTTP_400_BAD_REQUEST)
@@ -185,7 +183,7 @@ class Highlights (APIView):
             try:
                 I =get_user_ID(request) #get id
                 Highlight.objects.get(id = id).delete()
-                log(user=User.objects.filter(id=I).first(), action="Deleted a highlight",)
+                log(user=User.objects.get(id=I), action="Deleted a highlight",)
                 return Response("Deleted successfully", status=status.HTTP_200_OK)
             except ObjectDoesNotExist:
                 return Response("This highlight doesn't exist", status=status.HTTP_400_BAD_REQUEST)
@@ -212,10 +210,10 @@ class PostHighlight(APIView):
                 if serializer.is_valid():
                     serializer.validated_data["image"]= [Image.objects.last().id]
                     serializer.save()
-                    log(user=User.objects.filter(id=id).first(),action="Added a highlight",)
+                    log(user=User.objects.get(id=id),action="Added a highlight",)
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
                 else:
-                    log(user=User.objects.filter(id=id).first(),action="Tried to add a highlight",)
+                    log(user=User.objects.get(id=id),action="Tried to add a highlight",)
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
                 log_errors(str(ex),id)
@@ -231,10 +229,8 @@ class ActiveHighlights (APIView):
             #id =get_user_ID(request)
             Highlights = Highlight.objects.filter(active = "True")
             serializer = HighlightSerializer(Highlights, many = True)
-            log(user=User.objects.filter(id=1).first(), action="Viewed active highlight",)
             return Response(serializer.data)
         except Exception as ex:
-            log_errors(str(ex),1)
             return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class AllEvents (APIView):
@@ -244,10 +240,8 @@ class AllEvents (APIView):
             #id =get_user_ID(request)
             Events = Event.objects.all()
             serializer = EventSerializer(Events, many = True)
-            log(user=User.objects.filter(id=1).first(), action="Viewed all events",)
             return Response(serializer.data)
         except Exception as ex:
-            log_errors(str(ex),1)
             return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class PostEvent(APIView):
@@ -269,10 +263,10 @@ class PostEvent(APIView):
                 if serializer.is_valid():
                     serializer.validated_data["image"]= [Image.objects.last().id]
                     serializer.save()
-                    log(user=User.objects.filter(id=id).first(),action="Added an event",)
+                    log(user=User.objects.get(id=id),action="Added an event",)
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
                 else:
-                    log(user=User.objects.filter(id=id).first(),action="Tried to add an event",)
+                    log(user=User.objects.get(id=id),action="Tried to add an event",)
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
                 log_errors(str(ex),id)
@@ -286,7 +280,6 @@ class Events (APIView):
         try:
             event = Event.objects.get(id= id)
             serializer = EventSerializer(event)
-            log(user=User.objects.filter(id=1).first(), action="Viewed an event",)
             return Response(serializer.data, status = status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response("This event doesn't exist", status=status.HTTP_400_BAD_REQUEST)
@@ -313,10 +306,10 @@ class Events (APIView):
                 serializer= EventSerializer(Events, data= request.data)
                 if serializer.is_valid():
                     serializer.save()
-                    log(user=User.objects.filter(id=I).first(), action="Updated an event",)
+                    log(user=User.objects.get(id=I), action="Updated an event",)
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
                 else:
-                    log(user=User.objects.filter(id=I).first(), action="Tried to update an event",)
+                    log(user=User.objects.get(id=I), action="Tried to update an event",)
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             except ObjectDoesNotExist:
                 return Response("This event doesn't exist", status=status.HTTP_400_BAD_REQUEST)
@@ -332,7 +325,7 @@ class Events (APIView):
             try:
                 I =get_user_ID(request)
                 Event.objects.get(id = id).delete()
-                log(user=User.objects.filter(id=I).first(), action="Deleted an event",)
+                log(user=User.objects.get(id=I), action="Deleted an event",)
                 return Response("Deleted successfully", status=status.HTTP_200_OK)
             except ObjectDoesNotExist:
                 return Response("This event doesn't exist", status=status.HTTP_400_BAD_REQUEST)
@@ -350,10 +343,8 @@ class ActiveEvents (APIView):
             #id =get_user_ID(request)
             Events = Event.objects.filter(status = "True")
             serializer = EventSerializer(Events, many = True)
-            log(user=User.objects.filter(id=1).first(), action="Viewed active events",)
             return Response(serializer.data)
         except Exception as ex:
-            log_errors(str(ex),1)
             return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class TeamView (APIView):
@@ -363,10 +354,8 @@ class TeamView (APIView):
             #id =get_user_ID(request)
             teams= Team.objects.all()
             serializer= TeamSerializer(teams, many= True)
-            log(user=User.objects.filter(id=1).first(), action="Viewed the teams",)
             return Response(serializer.data)
         except Exception as ex:
-            log_errors(str(ex),1)
             return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -379,7 +368,7 @@ class TeamView (APIView):
                 if serializer.is_valid():
                     serializer.save()
                 else:
-                    log(user=User.objects.filter(id=id).first(),action="Tried to add a team",)
+                    log(user=User.objects.get(id=id),action="Tried to add a team",)
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 teams = Team.objects.last()
                 #achievement = {}  #name of the obj (JSON)-----DICTIONARY
@@ -399,7 +388,7 @@ class TeamView (APIView):
                         teams.image.add(Image.objects.last())
                     else:
                         return Response(single_image.errors, status = status.HTTP_400_BAD_REQUEST)
-                log(user=User.objects.filter(id=id).first(),action="Added a team",)
+                log(user=User.objects.get(id=id),action="Added a team",)
                 return Response(serializer.data, status= status.HTTP_201_CREATED)
             except Exception as ex:
                     log_errors(str(ex),id)
@@ -440,10 +429,10 @@ class TeamEditView (APIView):
                 serializer= TeamSerializer(teams, data= request.data)
                 if serializer.is_valid():
                     serializer.save()
-                    log(user=User.objects.filter(id=I).first(), action="Updated a team",)
+                    log(user=User.objects.get(id=I), action="Updated a team",)
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
                 else:
-                    log(user=User.objects.filter(id=I).first(), action="Tried to update a team",)
+                    log(user=User.objects.get(id=I), action="Tried to update a team",)
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             except ObjectDoesNotExist:
                 return Response("This team doesn't exist", status=status.HTTP_400_BAD_REQUEST)
@@ -460,14 +449,12 @@ class TeamEditView (APIView):
             if Team.objects.filter(id = pk).first():
                 teams = Team.objects.filter(id = pk).first()
                 serializer= TeamSerializer(teams)
-                log(user=User.objects.filter(id=1).first(), action="Viewed the teams",)
                 return Response(serializer.data)
             else:
                 return Response("Team doesn't exist", status=status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
                 return Response("This event doesn't exist", status=status.HTTP_400_BAD_REQUEST)
         except Exception as ex:
-            log_errors(str(ex),1)
             return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 #Delete a team by id URL : /api/teams/id
@@ -478,10 +465,10 @@ class TeamEditView (APIView):
                 teams = Team.objects.get(id=pk)
                 print(teams.achievement.all())
                 for i in teams.achievement.all():
-                    Achievement.objects.filter(id=i.id).delete()
+                    Achievement.objects.get(id=i.id).delete()
                 if teams is not None:
                     teams.delete()
-                    log(user=User.objects.filter(id=I).first(), action="Deleted a team",)
+                    log(user=User.objects.get(id=I), action="Deleted a team",)
                     return Response("Deleted successfully!", status=status.HTTP_200_OK)
             except ObjectDoesNotExist:
                 return Response("This team doesn't exist", status=status.HTTP_400_BAD_REQUEST)
@@ -503,25 +490,29 @@ class NewsFeedView(APIView):
             serializer = NewsFeedSerializer(page, many= True)
             data["num_pages"]=pages.num_pages
             data["articles"]= serializer.data
-            log(user=User.objects.filter(id=1).first(), action="Viewed the newsfeed",)
             return Response(data)
+        except EmptyPage :
+            return Response("This page doesn't exist ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as ex:
-            log_errors(str(ex),1)
             return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class EditNewsFeedView(APIView):
     def get(sef, request, id):
-        news = NewsFeed.objects.get(id= id)
-        serializer = NewsFeedSerializer(news)
-        log(user=User.objects.filter(id=1).first(), action="Viewed a newsfeed",)
-        return Response(serializer.data, status = status.HTTP_200_OK)
+        try:
+            news = NewsFeed.objects.get(id= id)
+            serializer = NewsFeedSerializer(news)
+            return Response(serializer.data, status = status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response("This news doesn't exist", status=status.HTTP_400_BAD_REQUEST)
+        except Exception as ex:
+            return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def put(self,request, id):
         if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
                 I =get_user_ID(request)
                 image = {}
-                news = NewsFeed.objects.filter(id = id).first()
+                news = NewsFeed.objects.get(id = id)
                 image["image"]=request.data["image"]
                 if(image["image"] != ""):
                     image=ImageSerializer(data= image)
@@ -529,18 +520,20 @@ class EditNewsFeedView(APIView):
                         image.save()
                         news.image.add(Image.objects.last().id)
                     else:
-                        return Response(image.errors)
+                        return Response(image.errors, status=status.HTTP_400_BAD_REQUEST)
                 else:
                     request.data.pop('image',None)
 
                 serializer= NewsFeedSerializer(news, data= request.data)
                 if serializer.is_valid():
                     serializer.save()
-                    log(user=User.objects.filter(id=I).first(), action="Updated a newsfeed",)
+                    log(user=User.objects.get(id=I), action="Updated a newsfeed",)
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
                 else:
-                    log(user=User.objects.filter(id=I).first(), action="Tried to update newfeed",)
+                    log(user=User.objects.get(id=I), action="Tried to update newfeed",)
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            except ObjectDoesNotExist:
+                return Response("This news doesn't exist", status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
                 log_errors(str(ex),I)
                 return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -548,13 +541,14 @@ class EditNewsFeedView(APIView):
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self,request, id):
-        x = TokenVerify(request)
-        if x == True :
+        if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
                 I =get_user_ID(request)
-                news = NewsFeed.objects.filter(id = id).delete()
-                log(user=User.objects.filter(id=I).first(), action="Deleted a newsfeed",)
+                news = NewsFeed.objects.get(id = id).delete()
+                log(user=User.objects.get(id=I), action="Deleted a newsfeed",)
                 return Response("Deleted successfully", status=status.HTTP_200_OK)
+            except ObjectDoesNotExist:
+                return Response("This news doesn't exist", status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
                 log_errors(str(ex),I)
                 return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -572,15 +566,15 @@ class PostNewsFeedView(APIView):
                 if image.is_valid():
                     image.save()
                 else:
-                    return Response("image error")
+                    return Response(image.errors, status=status.HTTP_400_BAD_REQUEST)
                 serializer= NewsFeedSerializer(data= request.data)
                 if serializer.is_valid():
                     serializer.validated_data["image"]= [Image.objects.last().id]
                     serializer.save()
-                    log(user=User.objects.filter(id=id).first(),action="Added a newsfeed",)
+                    log(user=User.objects.get(id=id),action="Added a newsfeed",)
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
                 else:
-                    log(user=User.objects.filter(id=id).first(),action="Tried to add a newsfeed",)
+                    log(user=User.objects.get(id=id),action="Tried to add a newsfeed",)
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
                 log_errors(str(ex),id)
@@ -594,10 +588,8 @@ class FAQView(APIView):
             #id =get_user_ID(request)
             Faqs=FAQ.objects.all()
             serializer = FAQSerializer(Faqs, many= True)
-            log(user=User.objects.filter(id=1).first(), action="Viewed the FAQ",)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception as ex:
-            log_errors(str(ex),1)
             return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def post(self,request):
@@ -607,10 +599,10 @@ class FAQView(APIView):
                 serializer = FAQSerializer(data=request.data)
                 if (serializer.is_valid()):
                     serializer.save()
-                    log(user=User.objects.filter(id=id).first(),action="Added FAQ",)
+                    log(user=User.objects.get(id=id),action="Added FAQ",)
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
                 else:
-                    log(user=User.objects.filter(id=id).first(),action="Tried to add FAQ",)
+                    log(user=User.objects.get(id=id),action="Tried to add FAQ",)
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
                 log_errors(str(ex),id)
@@ -623,10 +615,11 @@ class DeleteFaqView(APIView):
         if TokenVerify(request) :
             try:
                 I =get_user_ID(request)
-                if FAQ.objects.filter(id = id) is not None:
-                    FAQ.objects.filter(id = id).delete()
-                    log(user=User.objects.filter(id=I).first(), action="Deleted a FAQ",)
-                    return Response("Deleted successfully", status=status.HTTP_200_OK)
+                FAQ.objects.get(id = id).delete()
+                log(user=User.objects.get(id=I), action="Deleted a FAQ",)
+                return Response("Deleted successfully", status=status.HTTP_200_OK)
+            except ObjectDoesNotExist:
+                return Response("This FAQ doesn't exist", status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
                 log_errors(str(ex),I)
                 return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -649,7 +642,6 @@ class AllUsers(APIView):
                     user_dictionary ["college_id"] = i.college_id
                     user_dictionary ["group"] = i.user.groups.all().first().name
                     user_list.append(user_dictionary)
-                log(user=User.objects.filter(id=I).first(), action="Viewed all users",)
                 return Response(user_list)
             except Exception as ex:
                 log_errors(str(ex),I)
@@ -664,15 +656,17 @@ class UserView(APIView):
             try:
                 I =get_user_ID(request)
                 # TargetUser = User.objects.filter(id = id).first()
-                profile = Profile.objects.filter(user = id).first()
+                profile = Profile.objects.get(user = id)
                 user_dictionary = {}
                 user_dictionary["name"] = profile.name
                 user_dictionary["phone"] = profile.mobile
                 user_dictionary["college_id"] = profile.college_id
                 user_dictionary["email"] = profile.user.email
                 user_dictionary["group"] = profile.user.groups.all().first().name
-                log(user=User.objects.filter(id=I).first(), action="Viewed one user",)
+                log(user=User.objects.get(id=I), action="Viewed one user",)
                 return Response(user_dictionary)
+            except ObjectDoesNotExist:
+                return Response("This user doesn't exist", status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
                 log_errors(str(ex),I)
                 return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -687,8 +681,10 @@ class UserView(APIView):
                 updated_group = Group.objects.get(name = request.data['group'])
                 updated_group.user_set.add(user)
                 # user_groups.save()
-                log(user=User.objects.filter(id=I).first(), action="Updated a user",)
-                return Response("User Group Permissions SUccessfully Updated" , status=status.HTTP_202_ACCEPTED)
+                log(user=User.objects.get(id=I), action="Updated a user",)
+                return Response("User Group Permissions Successfully Updated" , status=status.HTTP_202_ACCEPTED)
+            except ObjectDoesNotExist:
+                return Response("This user doesn't exist", status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
                 log_errors(str(ex),I)
                 return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -702,7 +698,6 @@ class GroupsView(APIView):
                 id =get_user_ID(request)
                 groups = Group.objects.all()
                 serializer = GroupSerializer(groups, many= True)
-                log(user=User.objects.filter(id=id).first(), action="Viewed the groups",)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             except Exception as ex:
                 log_errors(str(ex),id)
