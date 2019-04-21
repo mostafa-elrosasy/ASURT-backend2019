@@ -17,25 +17,37 @@ from pinax.eventlog.models import log
 from django.core.exceptions import ObjectDoesNotExist
 
 
+# A Function To Verify The Token Using The "jwt.decode" Function
 def TokenVerify(request):
     try:
-        auth = get_authorization_header(request).split()
-        token=auth[1]
-        secret= SECRET_KEY # the secret key from the settings
-        jwt.decode(token , secret)
-        return True
-    except:
-        return True
+        try:
+            auth = get_authorization_header(request).split()
+            token=auth[1]
+            secret= SECRET_KEY # the secret key from the settings
+            jwt.decode(token , secret)
+            return True
+        except:
+            return False
+    except Exception as ex:
+        log_errors(str(ex),id)
+        return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
 
+
+# A Function That Verifies If The User Has Permission To Edit The Data , The Position Condition Can Be Changed To The Required Group
 def BackEndPermissionVerifier(request):
     auth = get_authorization_header(request).split()
     token=auth[1]
     secret= SECRET_KEY # the secret key from the settings
     payload = jwt.decode(token , secret)
-    if payload['position'] == 'IT -SeniorOfficer' :
-        return True
-    else :
-        return True
+    try:
+        if payload['position'] == 'IT -SeniorOfficer' :
+            return True
+        else :
+            return False
+    except:
+        log_errors(str(ex),id)
+        return Response({"Un-Authorized"}, status=status.HTTP_400_BAD_REQUEST)
+
 
         
         
@@ -70,6 +82,7 @@ class RemoveFromView(APIView):
         except Exception as ex:
             return Response("An error has happened!", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+# A Class View That Return All The Sponsors
 
 class SponsorGetView (APIView):
     #View all sponsors
@@ -82,7 +95,9 @@ class SponsorGetView (APIView):
             return Response(serializer.data)
         except Exception as ex:
             return Response("An error has happened!", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
+# A Class View That Add A Sponsor
+
 class SponsorPostView (APIView):
     #Add a new sponsor
     def post(self, request): 
@@ -103,6 +118,8 @@ class SponsorPostView (APIView):
         else:
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
 
+# A Class View That Delete A Sponsor
+
 class SponsorDelView (APIView):
     #Delete a sponsor 
     def delete(self, request,pk):
@@ -121,6 +138,8 @@ class SponsorDelView (APIView):
         else:
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
 
+# A Class View That Return All The Highlights
+
 class AllHighlights (APIView):
     #Function to view all highlights using URL : /api/highlight/all/
     def get(self, request):
@@ -131,6 +150,8 @@ class AllHighlights (APIView):
             return Response(serializer.data)
         except Exception as ex:
             return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# A Class View That Edit A Specific Highlight
 
 class Highlights (APIView):
     def get(self, request,id):
@@ -194,6 +215,8 @@ class Highlights (APIView):
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
 
     #Function to add a new highlight using URL : /api/highlight/
+
+
 class PostHighlight(APIView):
     def post(self, request):
         if TokenVerify(request) and BackEndPermissionVerifier(request) :
@@ -221,6 +244,7 @@ class PostHighlight(APIView):
         else:
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
     
+# A Class View That Return Only Active Highlights
 
 class ActiveHighlights (APIView):
     #Function to get active Highlights using url : /api/highlight/active/
@@ -232,6 +256,8 @@ class ActiveHighlights (APIView):
             return Response(serializer.data)
         except Exception as ex:
             return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# A Class View That Return All The Events
 
 class AllEvents (APIView):
     #Function to view all events using URL : /api/events/all/
@@ -335,6 +361,8 @@ class Events (APIView):
         else:
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
 
+# A Class View That Return Only Active Events
+
 class ActiveEvents (APIView):
     #Function to get active events using url : /api/events/active/
 
@@ -346,6 +374,7 @@ class ActiveEvents (APIView):
             return Response(serializer.data)
         except Exception as ex:
             return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class TeamView (APIView):
     #View all teams URL : /api/teams/
@@ -679,10 +708,11 @@ class UserView(APIView):
                 I = get_user_ID(request)
                 user = User.objects.get(pk = id)
                 updated_group = Group.objects.get(name = request.data['group'])
-                updated_group.user_set.add(user)
-                # user_groups.save()
-                log(user=User.objects.get(id=I), action="Updated a user",)
-                return Response("User Group Permissions Successfully Updated" , status=status.HTTP_202_ACCEPTED)
+                print(user)
+                user.groups.clear()
+                user.groups.add(updated_group)
+                log(user=User.objects.filter(id=I).first(), action="Updated a user",)
+                return Response("User Group Permissions SUccessfully Updated" , status=status.HTTP_202_ACCEPTED)
             except ObjectDoesNotExist:
                 return Response("This user doesn't exist", status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
