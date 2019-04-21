@@ -18,6 +18,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 
 # A Function To Verify The Token Using The "jwt.decode" Function
+
 def TokenVerify(request):
     try:
         try:
@@ -32,8 +33,8 @@ def TokenVerify(request):
         log_errors(str(ex),id)
         return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
 
-
 # A Function That Verifies If The User Has Permission To Edit The Data , The Position Condition Can Be Changed To The Required Group
+
 def BackEndPermissionVerifier(request):
     auth = get_authorization_header(request).split()
     token=auth[1]
@@ -48,9 +49,6 @@ def BackEndPermissionVerifier(request):
         log_errors(str(ex),id)
         return Response({"Un-Authorized"}, status=status.HTTP_400_BAD_REQUEST)
 
-
-        
-        
 
 # 0: to remove image form team
 # 1: to remove achievement form team
@@ -216,6 +214,7 @@ class Highlights (APIView):
 
     #Function to add a new highlight using URL : /api/highlight/
 
+# A Class View That Adds A Higlight
 
 class PostHighlight(APIView):
     def post(self, request):
@@ -270,6 +269,8 @@ class AllEvents (APIView):
         except Exception as ex:
             return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+# A Class View That Add Event
+
 class PostEvent(APIView):
     #Function to add a new event using URL : /api/events/
     def post(self, request):
@@ -300,6 +301,7 @@ class PostEvent(APIView):
         else:
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
 
+# A Class View That Edit Event
 
 class Events (APIView):
     def get(self, request, id):
@@ -375,6 +377,7 @@ class ActiveEvents (APIView):
         except Exception as ex:
             return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+# A Class View That Returns All Teams
 
 class TeamView (APIView):
     #View all teams URL : /api/teams/
@@ -388,7 +391,7 @@ class TeamView (APIView):
             return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-#Add a new Team URL : /api/teams/
+    #Add a new Team URL : /api/teams/
     def post (self, request):
         if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
@@ -424,6 +427,8 @@ class TeamView (APIView):
                     return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else :
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+
+# A Class View That Edit A Specific Team
 
 class TeamEditView (APIView):
     #Edit a team URL : /api/teams/id
@@ -471,7 +476,7 @@ class TeamEditView (APIView):
         else:
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
     
-#View a team by id URL : /api/teams/id
+    #View a team by id URL : /api/teams/id
     def get (self,request,pk):
         try:
             #I =get_user_ID(request)
@@ -486,7 +491,7 @@ class TeamEditView (APIView):
         except Exception as ex:
             return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-#Delete a team by id URL : /api/teams/id
+    #Delete a team by id URL : /api/teams/id
     def delete (self, request, pk):
         if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
@@ -507,6 +512,8 @@ class TeamEditView (APIView):
         else:
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
 
+# A Class View That Returns All News
+
 class NewsFeedView(APIView):
     def get(self, request, page_number):
         try:
@@ -524,6 +531,8 @@ class NewsFeedView(APIView):
             return Response("This page doesn't exist ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as ex:
             return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# A Class View That Edits News
 
 class EditNewsFeedView(APIView):
     def get(sef, request, id):
@@ -583,7 +592,9 @@ class EditNewsFeedView(APIView):
                 return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
-    
+
+# A Class View That Adds News
+
 class PostNewsFeedView(APIView):   
     def post(self, request):
         if TokenVerify(request) and BackEndPermissionVerifier(request) :
@@ -610,6 +621,8 @@ class PostNewsFeedView(APIView):
                 return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+
+# A Class View That Returns All FAQs
 
 class FAQView(APIView):
     def get(self,request):
@@ -638,7 +651,9 @@ class FAQView(APIView):
                 return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else :
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
-    
+
+# A Class View That Deletes A Specific FAQ
+
 class DeleteFaqView(APIView):
     def delete(self,request,id):
         if TokenVerify(request) :
@@ -654,6 +669,8 @@ class DeleteFaqView(APIView):
                 return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+
+# A Class View That Returns All Users
 
 class AllUsers(APIView):
     def get(self,request):
@@ -678,6 +695,8 @@ class AllUsers(APIView):
 
         else:
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+
+# A Class View That Edits Specific User
 
 class UserView(APIView):
     def get(self,request,id):
@@ -720,7 +739,9 @@ class UserView(APIView):
                 return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
-    
+
+# A Class View That Returns All Groups
+
 class GroupsView(APIView):
     def get(self,request):
         if TokenVerify(request):
