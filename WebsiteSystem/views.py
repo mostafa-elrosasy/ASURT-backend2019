@@ -239,9 +239,11 @@ class PostHighlight(APIView):
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
                 log_errors(str(ex),id)
-                return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response("msg":"Error", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+            # return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"msg": "Token Invalid"}, status=status.HTTP_400_BAD_REQUEST)
+
     
 # A Class View That Return Only Active Highlights
 
@@ -254,7 +256,10 @@ class ActiveHighlights (APIView):
             serializer = HighlightSerializer(Highlights, many = True)
             return Response(serializer.data)
         except Exception as ex:
-            return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            # return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            return Response("msg":"Error", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # A Class View That Return All The Events
 
@@ -267,7 +272,7 @@ class AllEvents (APIView):
             serializer = EventSerializer(Events, many = True)
             return Response(serializer.data)
         except Exception as ex:
-            return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response("msg":"Error", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # A Class View That Add Event
 
@@ -297,9 +302,9 @@ class PostEvent(APIView):
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
                 log_errors(str(ex),id)
-                return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response("msg":"An error has happened!", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"msg": "Token Invalid"}, status=status.HTTP_400_BAD_REQUEST)
 
 # A Class View That Edit Event
 
@@ -310,9 +315,9 @@ class Events (APIView):
             serializer = EventSerializer(event)
             return Response(serializer.data, status = status.HTTP_200_OK)
         except ObjectDoesNotExist:
-            return Response("This event doesn't exist", status=status.HTTP_400_BAD_REQUEST)
+            return Response("msg":"This event doesn't exist", status=status.HTTP_400_BAD_REQUEST)
         except Exception as ex:
-            return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response("msg":"An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     #Function to edit an already existing event using URL : /api/events/
     def put(self ,request ,id):
         if TokenVerify(request) and BackEndPermissionVerifier(request) :
@@ -340,12 +345,12 @@ class Events (APIView):
                     log(user=User.objects.get(id=I), action="Tried to update an event",)
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             except ObjectDoesNotExist:
-                return Response("This event doesn't exist", status=status.HTTP_400_BAD_REQUEST)
+                return Response("msg":"This event doesn't exist", status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
                 log_errors(str(ex),I)
-                return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response("msg":"An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"msg": "Token Invalid"}, status=status.HTTP_400_BAD_REQUEST)
 
     #Function to delete an event using URL : /api/events/
     def delete(self , request ,id):
@@ -354,14 +359,14 @@ class Events (APIView):
                 I =get_user_ID(request)
                 Event.objects.get(id = id).delete()
                 log(user=User.objects.get(id=I), action="Deleted an event",)
-                return Response("Deleted successfully", status=status.HTTP_200_OK)
+                return Response("msg":"Deleted successfully", status=status.HTTP_200_OK)
             except ObjectDoesNotExist:
-                return Response("This event doesn't exist", status=status.HTTP_400_BAD_REQUEST)
+                return Response("msg":"This event doesn't exist", status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
                 log_errors(str(ex),I)
-                return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response("msg":"An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"msg": "Token Invalid"}, status=status.HTTP_400_BAD_REQUEST)
 
 # A Class View That Return Only Active Events
 
@@ -375,7 +380,7 @@ class ActiveEvents (APIView):
             serializer = EventSerializer(Events, many = True)
             return Response(serializer.data)
         except Exception as ex:
-            return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response("msg":"Error", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # A Class View That Returns All Teams
 
