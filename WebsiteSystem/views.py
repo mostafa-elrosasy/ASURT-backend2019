@@ -31,7 +31,7 @@ def TokenVerify(request):
             return False
     except Exception as ex:
         log_errors(str(ex),id)
-        return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"msg": "unauthorized"}, status=status.HTTP_400_BAD_REQUEST)
 
 # A Function That Verifies If The User Has Permission To Edit The Data , The Position Condition Can Be Changed To The Required Group
 
@@ -47,7 +47,7 @@ def BackEndPermissionVerifier(request):
             return False
     except:
         log_errors(str(ex),id)
-        return Response({"Un-Authorized"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"msg": "unauthorized"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # 0: to remove image form team
@@ -76,9 +76,9 @@ class RemoveFromView(APIView):
                     Image.objects.get(id = second_id).delete()
                 return Response("deleted", status=status.HTTP_201_CREATED)
             else:
-                return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"msg": "unauthorized"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as ex:
-            return Response("An error has happened!", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"msg":"An error has happened"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 # A Class View That Return All The Sponsors
 
@@ -147,7 +147,7 @@ class AllHighlights (APIView):
             serializer = HighlightSerializer(Highlights, many = True)
             return Response(serializer.data)
         except Exception as ex:
-            return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"msg":"An error has happened! "}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # A Class View That Edit A Specific Highlight
 
@@ -161,7 +161,7 @@ class Highlights (APIView):
         except ObjectDoesNotExist:
             return Response("This highlight doesn't exist", status=status.HTTP_400_BAD_REQUEST)
         except Exception as ex:
-            return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"msg":"An error has happened! "}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     #Function to edit an already existing highlight using URL : /api/highlight/
     def put(self ,request ,id):
@@ -190,10 +190,10 @@ class Highlights (APIView):
                     log(user=User.objects.get(id=I), action="Tried to update a highlight",)
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             except ObjectDoesNotExist:
-                return Response("This highlight doesn't exist", status=status.HTTP_400_BAD_REQUEST)
+                return Response({"msg":"This highlight doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
                 log_errors(str(ex),I)
-                return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({"msg":"An error has happened! "}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
     #Function to delete a highlight using URL : /api/highlight/
@@ -203,14 +203,14 @@ class Highlights (APIView):
                 I =get_user_ID(request) #get id
                 Highlight.objects.get(id = id).delete()
                 log(user=User.objects.get(id=I), action="Deleted a highlight",)
-                return Response("Deleted successfully", status=status.HTTP_200_OK)
+                return Response({"msg":"Deleted successfully"}, status=status.HTTP_200_OK)
             except ObjectDoesNotExist:
-                return Response("This highlight doesn't exist", status=status.HTTP_400_BAD_REQUEST)
+                return Response({"msg":"This highlight doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
                 log_errors(str(ex),I)
-                return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({"msg":"An error has happened! "}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"msg": "unauthorized"}, status=status.HTTP_400_BAD_REQUEST)
 
     #Function to add a new highlight using URL : /api/highlight/
 
@@ -257,7 +257,7 @@ class ActiveHighlights (APIView):
             return Response(serializer.data)
         except Exception as ex:
 
-            # return Response("Error ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # return Response({"msg":"An error has happened! "}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             return Response({"msg":"Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -533,9 +533,9 @@ class NewsFeedView(APIView):
             data["articles"]= serializer.data
             return Response(data)
         except EmptyPage :
-            return Response("This page doesn't exist ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"msg":"This page doesn't exist "}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as ex:
-            return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"msg":"An error has happened! "}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # A Class View That Edits News
 
@@ -546,9 +546,9 @@ class EditNewsFeedView(APIView):
             serializer = NewsFeedSerializer(news)
             return Response(serializer.data, status = status.HTTP_200_OK)
         except ObjectDoesNotExist:
-            return Response("This news doesn't exist", status=status.HTTP_400_BAD_REQUEST)
+            return Response({"msg":"This news doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as ex:
-            return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"msg":"An error has happened! "}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def put(self,request, id):
         if TokenVerify(request) and BackEndPermissionVerifier(request) :
@@ -576,12 +576,12 @@ class EditNewsFeedView(APIView):
                     log(user=User.objects.get(id=I), action="Tried to update newfeed",)
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             except ObjectDoesNotExist:
-                return Response("This news doesn't exist", status=status.HTTP_400_BAD_REQUEST)
+                return Response({"msg":"This news doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
                 log_errors(str(ex),I)
-                return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({"msg":"An error has happened! "}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"msg": "unauthorized"}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self,request, id):
         if TokenVerify(request) and BackEndPermissionVerifier(request) :
@@ -589,14 +589,14 @@ class EditNewsFeedView(APIView):
                 I =get_user_ID(request)
                 news = NewsFeed.objects.get(id = id).delete()
                 log(user=User.objects.get(id=I), action="Deleted a newsfeed",)
-                return Response("Deleted successfully", status=status.HTTP_200_OK)
+                return Response({"msg":"Deleted successfully"}, status=status.HTTP_200_OK)
             except ObjectDoesNotExist:
-                return Response("This news doesn't exist", status=status.HTTP_400_BAD_REQUEST)
+                return Response({"msg":"This news doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
                 log_errors(str(ex),I)
-                return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({"msg":"An error has happened! "}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"msg": "unauthorized"}, status=status.HTTP_400_BAD_REQUEST)
 
 # A Class View That Adds News
 
@@ -637,7 +637,7 @@ class FAQView(APIView):
             serializer = FAQSerializer(Faqs, many= True)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception as ex:
-            return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"msg":"An error has happened!"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def post(self,request):
         if TokenVerify(request) :
@@ -653,9 +653,9 @@ class FAQView(APIView):
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
                 log_errors(str(ex),id)
-                return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({"msg":"An error has happened! "}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else :
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"msg": "unauthorized"}, status=status.HTTP_400_BAD_REQUEST)
 
 # A Class View That Deletes A Specific FAQ
 
@@ -666,14 +666,14 @@ class DeleteFaqView(APIView):
                 I =get_user_ID(request)
                 FAQ.objects.get(id = id).delete()
                 log(user=User.objects.get(id=I), action="Deleted a FAQ",)
-                return Response("Deleted successfully", status=status.HTTP_200_OK)
+                return Response({"msg":"Deleted successfully"}, status=status.HTTP_200_OK)
             except ObjectDoesNotExist:
-                return Response("This FAQ doesn't exist", status=status.HTTP_400_BAD_REQUEST)
+                return Response({"msg":"This FAQ doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
                 log_errors(str(ex),I)
-                return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({"msg":"An error has happened! "}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"msg": "unauthorized"}, status=status.HTTP_400_BAD_REQUEST)
 
 # A Class View That Returns All Users
 
@@ -696,10 +696,10 @@ class AllUsers(APIView):
                 return Response(user_list)
             except Exception as ex:
                 log_errors(str(ex),I)
-                return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({"msg":"An error has happened! "}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         else:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"msg": "unauthorized"}, status=status.HTTP_400_BAD_REQUEST)
 
 # A Class View That Edits Specific User
 
@@ -719,12 +719,12 @@ class UserView(APIView):
                 log(user=User.objects.get(id=I), action="Viewed one user",)
                 return Response(user_dictionary)
             except ObjectDoesNotExist:
-                return Response("This user doesn't exist", status=status.HTTP_400_BAD_REQUEST)
+                return Response({"msg":"This user doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
                 log_errors(str(ex),I)
-                return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({"msg":"An error has happened! "}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"msg": "unauthorized"}, status=status.HTTP_400_BAD_REQUEST)
     
     def put(self,request,id):
         if TokenVerify(request) and BackEndPermissionVerifier(request) :
@@ -736,14 +736,14 @@ class UserView(APIView):
                 user.groups.clear()
                 user.groups.add(updated_group)
                 log(user=User.objects.filter(id=I).first(), action="Updated a user",)
-                return Response("User Group Permissions SUccessfully Updated" , status=status.HTTP_202_ACCEPTED)
+                return Response({"msg":"User Group Permissions SUccessfully Updated"} , status=status.HTTP_202_ACCEPTED)
             except ObjectDoesNotExist:
-                return Response("This user doesn't exist", status=status.HTTP_400_BAD_REQUEST)
+                return Response({"msg":"This user doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
                 log_errors(str(ex),I)
-                return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({"msg":"An error has happened! "}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"msg": "unauthorized"}, status=status.HTTP_400_BAD_REQUEST)
 
 # A Class View That Returns All Groups
 
@@ -757,6 +757,6 @@ class GroupsView(APIView):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             except Exception as ex:
                 log_errors(str(ex),id)
-                return Response("An error has happened! ", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({"msg":"An error has happened! "}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            return Response({"Token Validation": "False"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"msg": "unauthorized"}, status=status.HTTP_400_BAD_REQUEST)
