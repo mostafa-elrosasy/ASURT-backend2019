@@ -684,8 +684,8 @@ class AllUsers(APIView):
                 I =get_user_ID(request)
                 profiles = Profile.objects.all()
                 user_list = []
-                user_dictionary = {} #key + value
                 for i in profiles:
+                    user_dictionary = {} #key + value
                     user_dictionary ["id"] = i.user.id
                     user_dictionary ["email"] = i.user.email
                     user_dictionary ["name"] = i.name
