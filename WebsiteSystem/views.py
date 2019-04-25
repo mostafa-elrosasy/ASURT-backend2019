@@ -760,3 +760,4 @@ class GroupsView(APIView):
                 return Response({"msg":"An error has happened! "}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response({"msg": "unauthorized"}, status=status.HTTP_400_BAD_REQUEST)
+            

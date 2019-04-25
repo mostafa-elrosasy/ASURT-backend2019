@@ -24,7 +24,7 @@ class NewsFeed(models.Model):
     date = models.DateField()
     status= models.BooleanField()
     article_type = models.CharField(max_length=100)
-    video = models.URLField(default="")
+    video = models.URLField(default="", blank=True)
     image = models.ManyToManyField(Image)
 
 class Achievement(models.Model):
