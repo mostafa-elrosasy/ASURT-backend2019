@@ -440,23 +440,19 @@ class TeamEditView (APIView):
     def put (self, request, pk):
         if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
-                I =1#get_user_ID(request)
+                I =get_user_ID(request)
                 teams = Team.objects.get(id = pk)
                 achievements= request.data["achievement"]
-                if(achievements != ""):
-                    for i in teams.achievement.all():
-                        teams.achievement.remove(i)
-                        i.delete()
-                    for single_achievement in achievements :
-                        single_achievement = AchievementSerializer(data = single_achievement)
-                        if single_achievement.is_valid():
-                            single_achievement.save()
-                            teams.achievement.add(Achievement.objects.last())
-                        else:
-                            return Response(single_achievement.errors, status=status.HTTP_400_BAD_REQUEST)
-                else:
-                    request.data.pop('achievement',None)
-
+                for i in teams.achievement.all():
+                    teams.achievement.remove(i)
+                    i.delete()
+                for single_achievement in achievements :
+                    single_achievement = AchievementSerializer(data = single_achievement)
+                    if single_achievement.is_valid():
+                        single_achievement.save()
+                        teams.achievement.add(Achievement.objects.last())
+                    else:
+                        return Response(single_achievement.errors, status=status.HTTP_400_BAD_REQUEST)
                 image = {}
                 image["image"]=request.data["image"]
                 if(image["image"] != ""):
