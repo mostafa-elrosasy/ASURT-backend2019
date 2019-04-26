@@ -64,7 +64,7 @@ class RemoveFromView(APIView):
                     Image.objects.get(id = second_id).delete()
                 if(type == 1):
                     Team.objects.get(id = first_id).achievement.remove(Achievement.objects.get(id = second_id))
-                    Image.objects.get(id = second_id).delete()
+                    Achievement.objects.get(id = second_id).delete()
                 if(type == 2):
                     Event.objects.get(id = first_id).image.remove(Image.objects.get(id = second_id))
                     Image.objects.get(id = second_id).delete()
@@ -440,16 +440,20 @@ class TeamEditView (APIView):
     def put (self, request, pk):
         if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
-                I =get_user_ID(request)
+                I =1#get_user_ID(request)
                 teams = Team.objects.get(id = pk)
-                achievement= request.data["achievement"]
-                if(achievement != ""):
-                    achievement=AchievementSerializer(data= achievement)
-                    if achievement.is_valid():
-                        achievement.save()
-                        teams.achievement.add(Achievement.objects.last().id)
-                    else:
-                        return Response(achievement.errors, status=status.HTTP_400_BAD_REQUEST)
+                achievements= request.data["achievement"]
+                if(achievements != ""):
+                    for i in teams.achievement.all():
+                        teams.achievement.remove(i)
+                        i.delete()
+                    for single_achievement in achievements :
+                        single_achievement = AchievementSerializer(data = single_achievement)
+                        if single_achievement.is_valid():
+                            single_achievement.save()
+                            teams.achievement.add(Achievement.objects.last())
+                        else:
+                            return Response(single_achievement.errors, status=status.HTTP_400_BAD_REQUEST)
                 else:
                     request.data.pop('achievement',None)
 
@@ -502,7 +506,6 @@ class TeamEditView (APIView):
             try:
                 I =get_user_ID(request)
                 teams = Team.objects.get(id=pk)
-                print(teams.achievement.all())
                 for i in teams.achievement.all():
                     Achievement.objects.get(id=i.id).delete()
                 if teams is not None:
