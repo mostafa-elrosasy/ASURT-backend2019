@@ -438,21 +438,28 @@ class TeamView (APIView):
 class TeamEditView (APIView):
     #Edit a team URL : /api/teams/id
     def put (self, request, pk):
-        if TokenVerify(request) and BackEndPermissionVerifier(request) :
+        if (True):#TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
-                I =get_user_ID(request)
+                #I =get_user_ID(request)
                 teams = Team.objects.get(id = pk)
                 achievements= request.data["achievement"]
-                for i in teams.achievement.all():
-                    teams.achievement.remove(i)
-                    i.delete()
                 for single_achievement in achievements :
-                    single_achievement = AchievementSerializer(data = single_achievement)
-                    if single_achievement.is_valid():
-                        single_achievement.save()
-                        teams.achievement.add(Achievement.objects.last())
+                    if(Achievement.objects.filter(id = single_achievement["id"]).exists()):
+                        ach = Achievement.objects.get(id = single_achievement["id"])
+                        if(single_achievement["image"]==""):
+                            single_achievement.pop('image', None)
+                        single_achievement = AchievementSerializer(ach,data = single_achievement)
+                        if single_achievement.is_valid():
+                            single_achievement.save()
+                        else:
+                            return Response(single_achievement.errors, status=status.HTTP_400_BAD_REQUEST)
                     else:
-                        return Response(single_achievement.errors, status=status.HTTP_400_BAD_REQUEST)
+                        single_achievement = AchievementSerializer(data = single_achievement)
+                        if single_achievement.is_valid():
+                            single_achievement.save()
+                            teams.achievement.add(Achievement.objects.last())
+                        else:
+                            return Response(single_achievement.errors, status=status.HTTP_400_BAD_REQUEST) 
                 image = {}
                 image["image"]=request.data["image"]
                 if(image["image"] != ""):
@@ -468,15 +475,15 @@ class TeamEditView (APIView):
                 serializer= TeamSerializer(teams, data= request.data)
                 if serializer.is_valid():
                     serializer.save()
-                    log(user=User.objects.get(id=I), action="Updated a team",)
+                    #log(user=User.objects.get(id=I), action="Updated a team",)
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
                 else:
-                    log(user=User.objects.get(id=I), action="Tried to update a team",)
+                    #log(user=User.objects.get(id=I), action="Tried to update a team",)
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             except ObjectDoesNotExist:
                 return Response({"msg":"This team doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:
-                log_errors(str(ex),I)
+                log_errors(str(ex),1)
                 return Response({"msg":"An error has happened! "}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response({"msg": "Token Invalid"}, status=status.HTTP_400_BAD_REQUEST)
@@ -495,7 +502,7 @@ class TeamEditView (APIView):
                 return Response({"msg":"This team doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as ex:
             return Response({"msg":"An error has happened! "}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+ 
     #Delete a team by id URL : /api/teams/id
     def delete (self, request, pk):
         if TokenVerify(request) and BackEndPermissionVerifier(request) :
@@ -503,11 +510,12 @@ class TeamEditView (APIView):
                 I =get_user_ID(request)
                 teams = Team.objects.get(id=pk)
                 for i in teams.achievement.all():
-                    Achievement.objects.get(id=i.id).delete()
-                if teams is not None:
-                    teams.delete()
-                    log(user=User.objects.get(id=I), action="Deleted a team",)
-                    return Response({"msg":"Deleted successfully!"}, status=status.HTTP_200_OK)
+                    ach = Achievement.objects.get(id=i.id)
+                    teams.achievement.remove(ach)
+                    ach.delete()
+                teams.delete()
+                log(user=User.objects.get(id=I), action="Deleted a team",)
+                return Response({"msg":"Deleted successfully!"}, status=status.HTTP_200_OK)
             except ObjectDoesNotExist:
                 return Response({"msg":"This team doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
             except Exception as ex:

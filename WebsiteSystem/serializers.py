@@ -11,7 +11,7 @@ class ImageSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class AchievementSerializer (serializers.ModelSerializer):
-    image = Base64FileField(max_length=None)
+    image = Base64FileField(max_length=None, use_url=True, required= False)
     class Meta:
         model= Achievement
         fields = '__all__'
