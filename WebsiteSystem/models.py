@@ -5,14 +5,14 @@ class Image(models.Model):
 
 class Highlight(models.Model):
     title = models.CharField(max_length=100)
-    description = models.CharField(max_length=500)
+    description = models.CharField(max_length=15000)
     url= models.URLField()
     active= models.BooleanField()
     image = models.ManyToManyField(Image)
 
 class Event(models.Model):
     name = models.CharField(max_length=100)
-    description = models.CharField(max_length=500)
+    description = models.CharField(max_length=15000)
     date = models.DateField()
     status= models.BooleanField()
     event_type = models.CharField(max_length=100)
@@ -20,7 +20,7 @@ class Event(models.Model):
 
 class NewsFeed(models.Model):
     title = models.CharField(max_length=100)
-    description = models.CharField(max_length=500)
+    description = models.CharField(max_length=15000)
     date = models.DateField()
     status= models.BooleanField()
     article_type = models.CharField(max_length=100)
@@ -29,7 +29,7 @@ class NewsFeed(models.Model):
 
 class Achievement(models.Model):
     title = models.CharField(max_length=100)
-    description = models.CharField(max_length=500)
+    description = models.CharField(max_length=15000)
     year = models.DateField()
     position = models.CharField(max_length=50)
     image = models.FileField()
@@ -37,7 +37,7 @@ class Achievement(models.Model):
 
 class Team(models.Model):
     name = models.CharField(max_length=100)
-    description = models.CharField(max_length=500)
+    description = models.CharField(max_length=15000)
     team_type= models.CharField(max_length=100)
     image = models.ManyToManyField(Image)
     achievement = models.ManyToManyField(Achievement)

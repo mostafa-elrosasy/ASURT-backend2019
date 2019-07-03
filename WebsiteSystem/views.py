@@ -459,18 +459,25 @@ class TeamEditView (APIView):
                             single_achievement.save()
                             teams.achievement.add(Achievement.objects.last())
                         else:
-                            return Response(single_achievement.errors, status=status.HTTP_400_BAD_REQUEST) 
-                image = {}
-                image["image"]=request.data["image"]
-                if(image["image"] != ""):
-                    image=ImageSerializer(data= image)
-                    if image.is_valid():
-                        image.save()
-                        teams.image.add(Image.objects.last().id)
+                            return Response(single_achievement.errors, status=status.HTTP_400_BAD_REQUEST)
+
+                for single_image in images :
+                    if(Image.objects.filter(id = single_image["id"]).exists()):
+                        img = Image.objects.get(id = single_image["id"])
+                        if(single_image["image"]==""):
+                            single_image.pop('image', None)
+                        single_image = ImageSerializer(img,data = single_image)
+                        if single_image.is_valid():
+                            single_image.save()
+                        else:
+                            return Response(single_image.errors, status=status.HTTP_400_BAD_REQUEST)
                     else:
-                        return Response(image.errors, status=status.HTTP_400_BAD_REQUEST)
-                else:
-                    request.data.pop('image',None)
+                        single_image = ImageSerializer(data = single_image)
+                        if single_image.is_valid():
+                            single_image.save()
+                            teams.image.add(Image.objects.last())
+                        else:
+                            return Response(single_image.errors, status=status.HTTP_400_BAD_REQUEST)
 
                 serializer= TeamSerializer(teams, data= request.data)
                 if serializer.is_valid():
