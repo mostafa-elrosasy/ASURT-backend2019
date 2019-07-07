@@ -375,7 +375,8 @@ class ActiveEvents (APIView):
 
     def get(self, request):
         try:
-            #id =get_user_ID(request)
+            #
+            # id =get_user_ID(request)
             Events = Event.objects.filter(status = "True")
             serializer = EventSerializer(Events, many = True)
             return Response(serializer.data)
@@ -438,9 +439,9 @@ class TeamView (APIView):
 class TeamEditView (APIView):
     #Edit a team URL : /api/teams/id
     def put (self, request, pk):
-        if (True):#TokenVerify(request) and BackEndPermissionVerifier(request) :
+        if TokenVerify(request) and BackEndPermissionVerifier(request) :
             try:
-                #I =get_user_ID(request)
+                I =get_user_ID(request)
                 teams = Team.objects.get(id = pk)
                 achievements= request.data["achievement"]
                 for single_achievement in achievements :
@@ -461,31 +462,26 @@ class TeamEditView (APIView):
                         else:
                             return Response(single_achievement.errors, status=status.HTTP_400_BAD_REQUEST)
 
+                images= request.data["image"]
+                for i in teams.image.all():
+                    teams.image.remove(i)
+                    i.delete()
                 for single_image in images :
-                    if(Image.objects.filter(id = single_image["id"]).exists()):
-                        img = Image.objects.get(id = single_image["id"])
-                        if(single_image["image"]==""):
-                            single_image.pop('image', None)
-                        single_image = ImageSerializer(img,data = single_image)
-                        if single_image.is_valid():
-                            single_image.save()
-                        else:
-                            return Response(single_image.errors, status=status.HTTP_400_BAD_REQUEST)
+                    single_image = ImageSerializer(data = single_image)
+                    if single_image.is_valid():
+                        single_image.save()
+                        teams.image.add(Image.objects.last())
                     else:
-                        single_image = ImageSerializer(data = single_image)
-                        if single_image.is_valid():
-                            single_image.save()
-                            teams.image.add(Image.objects.last())
-                        else:
-                            return Response(single_image.errors, status=status.HTTP_400_BAD_REQUEST)
+                        return Response(single_image.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
                 serializer= TeamSerializer(teams, data= request.data)
                 if serializer.is_valid():
                     serializer.save()
-                    #log(user=User.objects.get(id=I), action="Updated a team",)
+                    log(user=User.objects.get(id=I), action="Updated a team",)
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
                 else:
-                    #log(user=User.objects.get(id=I), action="Tried to update a team",)
+                    log(user=User.objects.get(id=I), action="Tried to update a team",)
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             except ObjectDoesNotExist:
                 return Response({"msg":"This team doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
